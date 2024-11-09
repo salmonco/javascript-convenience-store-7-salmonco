@@ -4,41 +4,23 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 class App {
+  products; // [{ name, price, quantity, promotion }]
+
+  promotions; // [{ name, buy, get, startDate, endDate }]
+
+  구매상품; // { 상픔명: 수량 }
+
+  증정상품; // { 상픔명: 수량 }
+
+  멤버십여부; // boolean
+
   async run() {
     // 상품 목록과 행사 목록을 파일 입출력을 통해 불러온다.
-    const products = [];
-    const filename = fileURLToPath(import.meta.url);
-    const dirname = path.dirname(filename);
-    const filePath = path.join(dirname, '..', 'public', 'products.md');
-    try {
-      const data = await fs.readFile(filePath, 'utf8');
-      data
-        .split('\n')
-        .slice(1, -1)
-        .forEach((line) => {
-          const [name, price, quantity, promotion] = line.split(',');
+    const products = await this.readProducts();
+    this.products = products;
 
-          products.push({ name, promotion, price: Number(price), quantity: Number(quantity) });
-        });
-    } catch (error) {
-      this.throwError(`products.md 파일을 불러오는 중 오류가 발생했습니다. ${error.message}`);
-    }
-
-    const promotions = [];
-    const promotionFilePath = path.join(dirname, '..', 'public', 'promotions.md');
-    try {
-      const data = await fs.readFile(promotionFilePath, 'utf8');
-      data
-        .split('\n')
-        .slice(1, -1)
-        .forEach((line) => {
-          const [name, buy, get, startDate, endDate] = line.split(',');
-
-          promotions.push({ name, startDate, endDate, buy: Number(buy), get: Number(get) });
-        });
-    } catch (error) {
-      this.throwError(`promotions.md 파일을 불러오는 중 오류가 발생했습니다. ${error.message}`);
-    }
+    const promotions = await this.readPromotions();
+    this.promotions = promotions;
 
     // 환영 인사와 함께 상품명, 가격, 프로모션 이름, 재고를 안내한다. 만약 재고가 0개라면 재고 없음을 출력한다.
     Console.print('안녕하세요. W편의점입니다.\n현재 보유하고 있는 상품입니다.\n');
@@ -61,7 +43,7 @@ class App {
 
     // 프로모션 적용이 가능한 상품인지 확인한다.
     buyProducts.forEach((buyProduct) => {
-      if (this.isProtomotionAvailable(promotions, products, buyProduct.name)) {
+      if (this.isProtomotionAvailable(buyProduct.name)) {
         console.log(buyProduct.name);
 
         // 프로모션 재고가 부족하여 일부 수량을 프로모션 혜택 없이 결제해야 하는지 확인한다.
@@ -69,22 +51,22 @@ class App {
         // 콜라 10개 구매 -> 2개 이상으로 가져왔네 -> get 수량 더하면 3개 -> 재고 7개보다 작거나 같음 -> 프로모션 적용, 재고 4개
         // 콜라 7개 구매 -> 2개 이상으로 가져왔네 -> get 수량 더하면 3개 -> 재고 4개보다 작거나 같음 -> 프로모션 적용, 재고 1개
         // 콜라 4개 구매 -> 2개 이상으로 가져왔네 -> get 수량 더하면 3개 -> 재고 1개보다 큼 -> 프로모션 미적용, 그래도 구매할래?
-        if (this.isPromotionQuantityEnough(promotions, products, buyProduct)) {
+        if (this.isPromotionQuantityEnough(buyProduct)) {
           console.log('프로모션 재고 충분');
         } else {
           console.log('프로모션 재고 부족');
         }
 
-        if (this.isIgnorePromotion(promotions, products, buyProduct)) {
+        if (this.isIgnorePromotion(buyProduct)) {
           // 프로모션 buy 수량보다 적게 가져왔을 경우 더 가져올 건지 묻지는 않는다.
           console.log('ignore');
-        } else if (this.isLessBuyThanPromotion(promotions, products, buyProduct)) {
+        } else if (this.isLessBuyThanPromotion(buyProduct)) {
           // 프로모션 buy 수량만큼 가져왔음에도 get 수량보다 적게 가져왔을 경우 더 가져올 건지 묻는다.
           // 프로모션 적용이 가능한 상품에 대해 고객이 해당 수량보다 적게 가져왔는지 확인한다.
           // 수량보다 적게 가져왔을 경우, 혜택에 대한 안내 메시지를 출력한다.
           // 수량보다 적게 가져왔을 경우, 그 수량만큼 추가 여부를 입력받는다.
           (async () => {
-            const answer = await this.readGetMorePromotionChoice(promotions, products, buyProduct);
+            const answer = await this.readGetMorePromotionChoice(buyProduct);
 
             if (answer === 'Y') {
               // Y: 증정 받을 수 있는 상품을 추가한다.
@@ -99,6 +81,54 @@ class App {
     });
 
     // 프로모션 적용이 가능한 상품에 대해 고객이 해당 수량보다 적게 가져왔는지 확인한다.
+  }
+
+  async readProducts() {
+    const products = [];
+    const filename = fileURLToPath(import.meta.url);
+    const dirname = path.dirname(filename);
+    const filePath = path.join(dirname, '..', 'public', 'products.md');
+
+    try {
+      const data = await fs.readFile(filePath, 'utf8');
+
+      data
+        .split('\n')
+        .slice(1, -1)
+        .forEach((line) => {
+          const [name, price, quantity, promotion] = line.split(',');
+
+          products.push({ name, promotion, price: Number(price), quantity: Number(quantity) });
+        });
+    } catch (error) {
+      this.throwError(`products.md 파일을 불러오는 중 오류가 발생했습니다. ${error.message}`);
+    }
+
+    return products;
+  }
+
+  async readPromotions() {
+    const promotions = [];
+    const filename = fileURLToPath(import.meta.url);
+    const dirname = path.dirname(filename);
+    const filePath = path.join(dirname, '..', 'public', 'promotions.md');
+
+    try {
+      const data = await fs.readFile(filePath, 'utf8');
+
+      data
+        .split('\n')
+        .slice(1, -1)
+        .forEach((line) => {
+          const [name, buy, get, startDate, endDate] = line.split(',');
+
+          promotions.push({ name, startDate, endDate, buy: Number(buy), get: Number(get) });
+        });
+    } catch (error) {
+      this.throwError(`promotions.md 파일을 불러오는 중 오류가 발생했습니다. ${error.message}`);
+    }
+
+    return promotions;
   }
 
   throwError(message) {
@@ -124,40 +154,40 @@ class App {
     });
   }
 
-  isProtomotionAvailable(promotions, products, productName) {
-    const prod = products.find((product) => product.name === productName);
+  isProtomotionAvailable(productName) {
+    const prod = this.products.find((product) => product.name === productName);
 
-    return promotions.some((promotion) => promotion.name === prod.promotion);
+    return this.promotions.some((promotion) => promotion.name === prod.promotion);
   }
 
-  isIgnorePromotion(promotions, products, buyProduct) {
-    const prod = products.find((product) => product.name === buyProduct.name);
-    const promotion = promotions.find((promo) => promo.name === prod.promotion);
+  isIgnorePromotion(buyProduct) {
+    const prod = this.products.find((product) => product.name === buyProduct.name);
+    const promotion = this.promotions.find((promo) => promo.name === prod.promotion);
 
     return buyProduct.quantity < promotion.buy;
   }
 
-  isPromotionQuantityEnough(promotions, products, buyProduct) {
-    const prod = products.find((product) => product.name === buyProduct.name);
-    const promotion = promotions.find((promo) => promo.name === prod.promotion);
+  isPromotionQuantityEnough(buyProduct) {
+    const prod = this.products.find((product) => product.name === buyProduct.name);
+    const promotion = this.promotions.find((promo) => promo.name === prod.promotion);
 
     const totalBuyQuantity = promotion.buy + promotion.get;
 
     return totalBuyQuantity <= prod.quantity;
   }
 
-  isLessBuyThanPromotion(promotions, products, buyProduct) {
-    const prod = products.find((product) => product.name === buyProduct.name);
-    const promotion = promotions.find((promo) => promo.name === prod.promotion);
+  isLessBuyThanPromotion(buyProduct) {
+    const prod = this.products.find((product) => product.name === buyProduct.name);
+    const promotion = this.promotions.find((promo) => promo.name === prod.promotion);
 
     const totalBuyQuantity = promotion.buy + promotion.get;
 
     return buyProduct.quantity < totalBuyQuantity;
   }
 
-  readGetMorePromotionChoice(promotions, products, buyProduct) {
-    const prod = products.find((product) => product.name === buyProduct.name);
-    const promotion = promotions.find((promo) => promo.name === prod.promotion);
+  readGetMorePromotionChoice(buyProduct) {
+    const prod = this.products.find((product) => product.name === buyProduct.name);
+    const promotion = this.promotions.find((promo) => promo.name === prod.promotion);
 
     return Console.readLineAsync(
       `현재 ${buyProduct.name}은(는) ${promotion.get}개를 무료로 더 받을 수 있습니다. 추가하시겠습니까? (Y/N)\n`,
