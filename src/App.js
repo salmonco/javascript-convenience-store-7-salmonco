@@ -1,3 +1,4 @@
+import { Console } from '@woowacourse/mission-utils';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -38,10 +39,31 @@ class App {
     }
 
     // 환영 인사와 함께 상품명, 가격, 프로모션 이름, 재고를 안내한다. 만약 재고가 0개라면 재고 없음을 출력한다.
+    Console.print('안녕하세요. W편의점입니다.\n현재 보유하고 있는 상품입니다.\n');
+    this.printProducts(products);
   }
 
   throwError(message) {
     throw new Error(`[ERROR] ${message}`);
+  }
+
+  printProducts(products) {
+    products.forEach((product) => {
+      const { name, price, quantity, promotion } = product;
+
+      let quantityMessage = `${quantity}개`;
+
+      if (quantity === 0) {
+        quantityMessage = '재고 없음';
+      }
+
+      let promotionMessage = promotion;
+      if (promotion === 'null') {
+        promotionMessage = '';
+      }
+
+      Console.print(`- ${name} ${Number(price).toLocaleString()}원 ${quantityMessage} ${promotionMessage}`);
+    });
   }
 }
 
