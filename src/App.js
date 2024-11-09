@@ -70,7 +70,18 @@ class App {
           // 프로모션 buy 수량만큼 가져왔음에도 get 수량보다 적게 가져왔을 경우 더 가져올 건지 묻는다.
           // 프로모션 적용이 가능한 상품에 대해 고객이 해당 수량보다 적게 가져왔는지 확인한다.
           // 수량보다 적게 가져왔을 경우, 혜택에 대한 안내 메시지를 출력한다.
-          this.printGetMorePromotionMessage(promotions, products, buyProduct);
+          // 수량보다 적게 가져왔을 경우, 그 수량만큼 추가 여부를 입력받는다.
+          (async () => {
+            const answer = await this.readGetMorePromotionChoice(promotions, products, buyProduct);
+
+            if (answer === 'Y') {
+              // Y: 증정 받을 수 있는 상품을 추가한다.
+              console.log('add');
+            } else {
+              // N: 증정 받을 수 있는 상품을 추가하지 않는다.
+              console.log('not add');
+            }
+          })();
         }
         // 콜라 2+1 프로모션 7개 남음
         // 콜라 10개 구매 -> 2개 이상으로 가져왔네 -> get 수량 더하면 3개 -> 재고 7개보다 작거나 같음 -> 프로모션 적용, 재고 4개
@@ -136,11 +147,11 @@ class App {
     return buyProduct.quantity < totalBuyQuantity;
   }
 
-  printGetMorePromotionMessage(promotions, products, buyProduct) {
+  readGetMorePromotionChoice(promotions, products, buyProduct) {
     const prod = products.find((product) => product.name === buyProduct.name);
     const promotion = promotions.find((promo) => promo.name === prod.promotion);
 
-    Console.print(
+    return Console.readLineAsync(
       `현재 ${buyProduct.name}은(는) ${promotion.get}개를 무료로 더 받을 수 있습니다. 추가하시겠습니까? (Y/N)\n`,
     );
   }
