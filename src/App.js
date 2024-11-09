@@ -17,7 +17,8 @@ class App {
         .slice(1, -1)
         .forEach((line) => {
           const [name, price, quantity, promotion] = line.split(',');
-          products.push({ name, price, quantity, promotion });
+
+          products.push({ name, promotion, price: Number(price), quantity: Number(quantity) });
         });
     } catch (error) {
       this.throwError(`products.md 파일을 불러오는 중 오류가 발생했습니다. ${error.message}`);
@@ -32,7 +33,8 @@ class App {
         .slice(1, -1)
         .forEach((line) => {
           const [name, buy, get, startDate, endDate] = line.split(',');
-          promotions.push({ name, buy, get, startDate, endDate });
+
+          promotions.push({ name, startDate, endDate, buy: Number(buy), get: Number(get) });
         });
     } catch (error) {
       this.throwError(`promotions.md 파일을 불러오는 중 오류가 발생했습니다. ${error.message}`);
@@ -61,8 +63,22 @@ class App {
     buyProducts.forEach((buyProduct) => {
       if (this.isProtomotionAvailable(promotions, products, buyProduct.name)) {
         console.log(buyProduct.name);
+        if (this.isIgnorePromotion(promotions, products, buyProduct)) {
+          // 프로모션 buy 수량보다 적게 가져왔을 경우 더 가져올 건지 묻지는 않는다.
+          console.log('ignore');
+        } else if (this.isPromotionQuantityEnough(promotions, products, buyProduct)) {
+          // 프로모션 buy 수량만큼 가져왔음에도 get 수량보다 적게 가져왔을 경우 더 가져올 건지 묻는다.
+          // 프로모션 적용이 가능한 상품에 대해 고객이 해당 수량보다 적게 가져왔는지 확인한다.
+          console.log('enough');
+        }
+        // 콜라 2+1 프로모션 7개 남음
+        // 콜라 10개 구매 -> 2개 이상으로 가져왔네 -> get 수량 더하면 3개 -> 재고 7개보다 작거나 같음 -> 프로모션 적용, 재고 4개
+        // 콜라 7개 구매 -> 2개 이상으로 가져왔네 -> get 수량 더하면 3개 -> 재고 4개보다 작거나 같음 -> 프로모션 적용, 재고 1개
+        // 콜라 4개 구매 -> 2개 이상으로 가져왔네 -> get 수량 더하면 3개 -> 재고 1개보다 큼 -> 프로모션 미적용, 그래도 구매할래?
       }
     });
+
+    // 프로모션 적용이 가능한 상품에 대해 고객이 해당 수량보다 적게 가져왔는지 확인한다.
   }
 
   throwError(message) {
@@ -84,7 +100,7 @@ class App {
         promotionMessage = '';
       }
 
-      Console.print(`- ${name} ${Number(price).toLocaleString()}원 ${quantityMessage} ${promotionMessage}`);
+      Console.print(`- ${name} ${price.toLocaleString()}원 ${quantityMessage} ${promotionMessage}`);
     });
   }
 
@@ -92,6 +108,22 @@ class App {
     const prod = products.find((product) => product.name === productName);
 
     return promotions.some((promotion) => promotion.name === prod.promotion);
+  }
+
+  isIgnorePromotion(promotions, products, buyProduct) {
+    const prod = products.find((product) => product.name === buyProduct.name);
+    const promotion = promotions.find((promo) => promo.name === prod.promotion);
+
+    return buyProduct.quantity < promotion.buy;
+  }
+
+  isPromotionQuantityEnough(promotions, products, buyProduct) {
+    const prod = products.find((product) => product.name === buyProduct.name);
+    const promotion = promotions.find((promo) => promo.name === prod.promotion);
+
+    const totalBuyQuantity = promotion.buy + promotion.get;
+
+    return totalBuyQuantity <= prod.quantity;
   }
 }
 
