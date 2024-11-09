@@ -41,6 +41,9 @@ class App {
     // 환영 인사와 함께 상품명, 가격, 프로모션 이름, 재고를 안내한다. 만약 재고가 0개라면 재고 없음을 출력한다.
     Console.print('안녕하세요. W편의점입니다.\n현재 보유하고 있는 상품입니다.\n');
     this.printProducts(products);
+
+    // 구매할 상품명과 수량을 입력받는다.
+    const buy = await Console.readLineAsync('\n구매하실 상품명과 수량을 입력해 주세요. (예: [사이다-2],[감자칩-1])\n');
   }
 
   throwError(message) {
