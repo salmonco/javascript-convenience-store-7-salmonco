@@ -44,6 +44,10 @@ class App {
 
     // 구매할 상품명과 수량을 입력받는다.
     const buy = await Console.readLineAsync('\n구매하실 상품명과 수량을 입력해 주세요. (예: [사이다-2],[감자칩-1])\n');
+
+    // 개별 상품을 쉼표(,)로 파싱한다.
+    const buyList = buy.split(',');
+    console.log(buyList);
   }
 
   throwError(message) {
