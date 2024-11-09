@@ -66,10 +66,11 @@ class App {
         if (this.isIgnorePromotion(promotions, products, buyProduct)) {
           // 프로모션 buy 수량보다 적게 가져왔을 경우 더 가져올 건지 묻지는 않는다.
           console.log('ignore');
-        } else if (this.isPromotionQuantityEnough(promotions, products, buyProduct)) {
+        } else if (this.isLessBuyThanPromotion(promotions, products, buyProduct)) {
           // 프로모션 buy 수량만큼 가져왔음에도 get 수량보다 적게 가져왔을 경우 더 가져올 건지 묻는다.
           // 프로모션 적용이 가능한 상품에 대해 고객이 해당 수량보다 적게 가져왔는지 확인한다.
-          console.log('enough');
+          // 수량보다 적게 가져왔을 경우, 혜택에 대한 안내 메시지를 출력한다.
+          this.printGetMorePromotionMessage(promotions, products, buyProduct);
         }
         // 콜라 2+1 프로모션 7개 남음
         // 콜라 10개 구매 -> 2개 이상으로 가져왔네 -> get 수량 더하면 3개 -> 재고 7개보다 작거나 같음 -> 프로모션 적용, 재고 4개
@@ -124,6 +125,24 @@ class App {
     const totalBuyQuantity = promotion.buy + promotion.get;
 
     return totalBuyQuantity <= prod.quantity;
+  }
+
+  isLessBuyThanPromotion(promotions, products, buyProduct) {
+    const prod = products.find((product) => product.name === buyProduct.name);
+    const promotion = promotions.find((promo) => promo.name === prod.promotion);
+
+    const totalBuyQuantity = promotion.buy + promotion.get;
+
+    return buyProduct.quantity < totalBuyQuantity;
+  }
+
+  printGetMorePromotionMessage(promotions, products, buyProduct) {
+    const prod = products.find((product) => product.name === buyProduct.name);
+    const promotion = promotions.find((promo) => promo.name === prod.promotion);
+
+    Console.print(
+      `현재 ${buyProduct.name}은(는) ${promotion.get}개를 무료로 더 받을 수 있습니다. 추가하시겠습니까? (Y/N)\n`,
+    );
   }
 }
 
