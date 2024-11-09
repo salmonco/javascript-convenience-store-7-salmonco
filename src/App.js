@@ -43,11 +43,20 @@ class App {
     this.printProducts(products);
 
     // 구매할 상품명과 수량을 입력받는다.
-    const buy = await Console.readLineAsync('\n구매하실 상품명과 수량을 입력해 주세요. (예: [사이다-2],[감자칩-1])\n');
+    const buyString = await Console.readLineAsync(
+      '\n구매하실 상품명과 수량을 입력해 주세요. (예: [사이다-2],[감자칩-1])\n',
+    );
 
     // 개별 상품을 쉼표(,)로 파싱한다.
-    const buyList = buy.split(',');
-    console.log(buyList);
+    const buyList = buyString.split(',');
+
+    // 상품명과 수량을 하이픈(-)으로 파싱한다.
+    const buyProducts = buyList.map((buy) => {
+      const [name, quantity] = buy.slice(1, -1).split('-');
+
+      return { name, quantity };
+    });
+    console.log(buyProducts);
   }
 
   throwError(message) {
