@@ -63,6 +63,18 @@ class App {
     buyProducts.forEach((buyProduct) => {
       if (this.isProtomotionAvailable(promotions, products, buyProduct.name)) {
         console.log(buyProduct.name);
+
+        // 프로모션 재고가 부족하여 일부 수량을 프로모션 혜택 없이 결제해야 하는지 확인한다.
+        // 콜라 2+1 프로모션 7개 남음
+        // 콜라 10개 구매 -> 2개 이상으로 가져왔네 -> get 수량 더하면 3개 -> 재고 7개보다 작거나 같음 -> 프로모션 적용, 재고 4개
+        // 콜라 7개 구매 -> 2개 이상으로 가져왔네 -> get 수량 더하면 3개 -> 재고 4개보다 작거나 같음 -> 프로모션 적용, 재고 1개
+        // 콜라 4개 구매 -> 2개 이상으로 가져왔네 -> get 수량 더하면 3개 -> 재고 1개보다 큼 -> 프로모션 미적용, 그래도 구매할래?
+        if (this.isPromotionQuantityEnough(promotions, products, buyProduct)) {
+          console.log('프로모션 재고 충분');
+        } else {
+          console.log('프로모션 재고 부족');
+        }
+
         if (this.isIgnorePromotion(promotions, products, buyProduct)) {
           // 프로모션 buy 수량보다 적게 가져왔을 경우 더 가져올 건지 묻지는 않는다.
           console.log('ignore');
@@ -83,10 +95,6 @@ class App {
             }
           })();
         }
-        // 콜라 2+1 프로모션 7개 남음
-        // 콜라 10개 구매 -> 2개 이상으로 가져왔네 -> get 수량 더하면 3개 -> 재고 7개보다 작거나 같음 -> 프로모션 적용, 재고 4개
-        // 콜라 7개 구매 -> 2개 이상으로 가져왔네 -> get 수량 더하면 3개 -> 재고 4개보다 작거나 같음 -> 프로모션 적용, 재고 1개
-        // 콜라 4개 구매 -> 2개 이상으로 가져왔네 -> get 수량 더하면 3개 -> 재고 1개보다 큼 -> 프로모션 미적용, 그래도 구매할래?
       }
     });
 
