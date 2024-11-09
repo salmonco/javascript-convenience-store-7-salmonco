@@ -56,7 +56,13 @@ class App {
 
       return { name, quantity };
     });
-    console.log(buyProducts);
+
+    // 프로모션 적용이 가능한 상품인지 확인한다.
+    buyProducts.forEach((buyProduct) => {
+      if (this.isProtomotionAvailable(promotions, products, buyProduct.name)) {
+        console.log(buyProduct.name);
+      }
+    });
   }
 
   throwError(message) {
@@ -80,6 +86,12 @@ class App {
 
       Console.print(`- ${name} ${Number(price).toLocaleString()}원 ${quantityMessage} ${promotionMessage}`);
     });
+  }
+
+  isProtomotionAvailable(promotions, products, productName) {
+    const prod = products.find((product) => product.name === productName);
+
+    return promotions.some((promotion) => promotion.name === prod.promotion);
   }
 }
 
