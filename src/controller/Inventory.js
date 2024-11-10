@@ -1,6 +1,6 @@
-import InputParser from '../controller/InputParser.js';
+import InputParser from './InputParser.js';
 import InputView from '../view/InputView.js';
-import Product from './Product.js';
+import Product from '../model/Product.js';
 
 class Inventory {
   #products = []; // [new Product({ name, price, quantity, promotion })]

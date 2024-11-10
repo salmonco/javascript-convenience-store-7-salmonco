@@ -1,5 +1,5 @@
 import PromotionManager from '../controller/PromotionManager.js';
-import Inventory from './Inventory.js';
+import Inventory from '../controller/Inventory.js';
 
 class ConvenienceStore {
   #inventory = new Inventory();

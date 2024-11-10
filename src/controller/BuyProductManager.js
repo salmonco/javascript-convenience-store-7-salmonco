@@ -1,6 +1,6 @@
 import throwError from '../util/throwError.js';
 
-class BuyProduct {
+class BuyProductManager {
   #promotionBuyProducts = {}; // { 상픔명: 수량 }
 
   #generalBuyProducts = {}; // { 상픔명: 수량 }
@@ -64,4 +64,4 @@ class BuyProduct {
   }
 }
 
-export default BuyProduct;
+export default BuyProductManager;
