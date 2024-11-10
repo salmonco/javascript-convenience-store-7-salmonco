@@ -46,12 +46,12 @@ const ReceiptCalculator = {
   calculateTotalBuyProductQuantity(generalBuyProducts, promotionBuyProducts) {
     let totalBuyProductQuantity = 0;
 
-    Object.entries(generalBuyProducts).forEach((prod) => {
-      totalBuyProductQuantity += prod.quantity;
+    Object.values(generalBuyProducts).forEach((quantity) => {
+      totalBuyProductQuantity += quantity;
     });
 
-    Object.entries(promotionBuyProducts).forEach((prod) => {
-      totalBuyProductQuantity += prod.quantity;
+    Object.values(promotionBuyProducts).forEach((quantity) => {
+      totalBuyProductQuantity += quantity;
     });
 
     return totalBuyProductQuantity;
