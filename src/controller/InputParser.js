@@ -36,7 +36,6 @@ const InputParser = {
 
     return products;
   },
-
   parsePromotions(data) {
     const promotions = [];
 
@@ -50,6 +49,23 @@ const InputParser = {
       });
 
     return promotions;
+  },
+  splitWithComma(buyString) {
+    return buyString.split(',');
+  },
+  splitWithHyphen(buyList) {
+    return buyList.map((buy) => {
+      const [name, quantity] = buy.slice(1, -1).split('-');
+
+      return { name, quantity: Number(quantity) };
+    });
+  },
+  calculateMoreGetQuantity(products, promotions, buyProduct) {
+    const prod = products.find((product) => product.name === buyProduct.name);
+    const promotion = promotions.find((promo) => promo.name === prod.promotion);
+    const moreGetQuantity = promotion.buy + promotion.get - buyProduct.quantity;
+
+    return moreGetQuantity;
   },
 };
 

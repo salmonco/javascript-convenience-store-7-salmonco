@@ -31,19 +31,13 @@ class App {
     OutputView.printProducts(products);
 
     // 구매할 상품명과 수량을 입력받는다.
-    const buyString = await Console.readLineAsync(
-      '\n구매하실 상품명과 수량을 입력해 주세요. (예: [사이다-2],[감자칩-1])\n',
-    );
+    const buyString = await InputView.readItem();
 
     // 개별 상품을 쉼표(,)로 파싱한다.
-    const buyList = buyString.split(',');
+    const buyList = InputParser.splitWithComma(buyString);
 
     // 상품명과 수량을 하이픈(-)으로 파싱한다.
-    const buyProducts = buyList.map((buy) => {
-      const [name, quantity] = buy.slice(1, -1).split('-');
-
-      return { name, quantity: Number(quantity) };
-    });
+    const buyProducts = InputParser.splitWithHyphen(buyList);
 
     /* eslint-disable no-restricted-syntax, no-await-in-loop */
     for (const buyProduct of buyProducts) {
@@ -100,7 +94,7 @@ class App {
       } else if (this.isLessBuyThanPromotion(buyProduct)) {
         // 1개 더 가져올랬는데 재고 부족하면? 정가로 사야 함 -> processPromotion
         // 프로모션 buy 수량만큼 가져왔음에도 get 수량보다 적게 가져왔을 경우 더 가져올 건지 묻는다.
-        const answer = await this.readGetMorePromotionChoice(buyProduct);
+        const answer = await InputView.readGetMorePromotionChoice(this.products, this.promotions, buyProduct);
 
         if (answer === 'Y') {
           // Y: 증정 받을 수 있는 상품을 추가한다.
@@ -131,7 +125,7 @@ class App {
     console.log('products: ', this.products);
 
     // 멤버십 할인 적용 여부를 입력 받는다.
-    const answer = await Console.readLineAsync('\n멤버십 할인을 받으시겠습니까? (Y/N)\n');
+    const answer = await InputView.readMembershipSaleChoice();
 
     if (answer === 'Y') {
       this.isMembership = true;
@@ -139,63 +133,13 @@ class App {
       this.isMembership = false;
     }
 
-    const totalBuyProducts = {};
-    let totalBuyProductQuantity = 0;
-    let generalBuyProductsTotalPrice = 0;
-    Object.entries(this.generalBuyProducts).forEach(([name, quantity]) => {
-      const { price } = this.products.find((product) => product.name === name);
-
-      generalBuyProductsTotalPrice += price * quantity;
-      totalBuyProducts[name] = totalBuyProducts[name] + quantity || quantity;
-      totalBuyProductQuantity += quantity;
+    OutputView.printReceipt({
+      promotionBuyProducts: this.promotionBuyProducts,
+      generalBuyProducts: this.generalBuyProducts,
+      products: this.products,
+      bonusProducts: this.bonusProducts,
+      isMembership: this.isMembership,
     });
-
-    Object.entries(this.promotionBuyProducts).forEach(([name, quantity]) => {
-      totalBuyProducts[name] = totalBuyProducts[name] + quantity || quantity;
-      totalBuyProductQuantity += quantity;
-    });
-
-    let totalBuyPrice = 0;
-    let promotionSalePrice = 0;
-    // 구매 상품 내역, 증정 상품 내역, 금액 정보를 영수증 형식으로 출력한다.
-    Console.print('\n==============W 편의점================\n');
-    Console.print('상품명		수량	금액\n');
-    Object.entries(totalBuyProducts).forEach(([name, quantity]) => {
-      const { price } = this.products.find((product) => product.name === name);
-      const totalPrice = price * quantity;
-
-      Console.print(`${name}		${quantity}	${totalPrice.toLocaleString()}\n`);
-
-      totalBuyPrice += totalPrice;
-    });
-
-    Console.print('=============증	정===============\n');
-    Object.entries(this.bonusProducts).forEach(([name, quantity]) => {
-      const { price } = this.products.find((product) => product.name === name);
-
-      Console.print(`${name}		${quantity}\n`);
-
-      promotionSalePrice += quantity * price;
-    });
-
-    Console.print('====================================\n');
-    Console.print(`총구매액		${totalBuyProductQuantity}	${totalBuyPrice.toLocaleString()}\n`);
-    Console.print(`행사할인			-${promotionSalePrice.toLocaleString()}`);
-
-    let membershipSalePrice = 0;
-
-    if (this.isMembership) {
-      membershipSalePrice = generalBuyProductsTotalPrice * 0.3;
-
-      if (membershipSalePrice > 8000) {
-        membershipSalePrice = 8000;
-      }
-    }
-
-    Console.print(`멤버십할인			-${membershipSalePrice.toLocaleString()}\n`);
-
-    const totalPrice = totalBuyPrice - promotionSalePrice - membershipSalePrice;
-    Console.print(`내실돈			 ${totalPrice.toLocaleString()}\n`);
   }
 
   throwError(message) {
@@ -232,22 +176,6 @@ class App {
     return buyProduct.quantity === promotion.buy;
   }
 
-  readGetMorePromotionChoice(buyProduct) {
-    const prod = this.products.find((product) => product.name === buyProduct.name);
-    const promotion = this.promotions.find((promo) => promo.name === prod.promotion);
-    const moreGetQuantity = promotion.buy + promotion.get - buyProduct.quantity;
-
-    return Console.readLineAsync(
-      `현재 ${buyProduct.name}은(는) ${moreGetQuantity}개를 무료로 더 받을 수 있습니다. 추가하시겠습니까? (Y/N)\n`,
-    );
-  }
-
-  readBuyConinueChoice(productName, remainBuyQuantity) {
-    return Console.readLineAsync(
-      `\n현재 ${productName} ${remainBuyQuantity}개는 프로모션 할인이 적용되지 않습니다. 그래도 구매하시겠습니까? (Y/N)\n`,
-    );
-  }
-
   async processPromotion(promotionProd, generalProd, buyProduct) {
     // 콜라 2+1 프로모션 7개 남음
     // 콜라 10개 구매 -> 2개 이상으로 가져왔네 -> get 수량 더하면 3개 -> 재고 7개보다 작거나 같음 -> 프로모션 적용, 재고 4개
@@ -281,7 +209,7 @@ class App {
       }
 
       // 프로모션 재고가 부족하여 일부 수량을 프로모션 혜택 없이 결제해야 하는지 확인한다.
-      const answer = await this.readBuyConinueChoice(buyProduct.name, remainBuyProductQuantity);
+      const answer = await InputView.readBuyConinueChoice(buyProduct.name, remainBuyProductQuantity);
 
       if (answer === 'Y') {
         // Y: 일부 수량에 대해 정가로 결제한다.
