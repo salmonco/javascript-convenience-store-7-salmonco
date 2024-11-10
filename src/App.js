@@ -12,7 +12,7 @@ class App {
 
   bonusProducts = {}; // { 상픔명: 수량 }
 
-  멤버십여부; // boolean
+  isMembership; // boolean
 
   async run() {
     // 상품 목록과 행사 목록을 파일 입출력을 통해 불러온다.
@@ -141,7 +141,14 @@ class App {
       }
     });
 
-    // 프로모션 적용이 가능한 상품에 대해 고객이 해당 수량보다 적게 가져왔는지 확인한다.
+    // 멤버십 할인 적용 여부를 입력 받는다.
+    const answer = await Console.readLineAsync('\n멤버십 할인을 받으시겠습니까? (Y/N)\n');
+
+    if (answer === 'Y') {
+      this.isMembership = true;
+    } else {
+      this.isMembership = false;
+    }
   }
 
   async readProducts() {
