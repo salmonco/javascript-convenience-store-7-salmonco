@@ -1,4 +1,5 @@
 import { Console } from '@woowacourse/mission-utils';
+import ReceiptCalculator from '../controller/ReceiptCalculator.js';
 
 const OutputView = {
   printWelcome() {
@@ -10,68 +11,45 @@ const OutputView = {
     });
   },
   printReceipt({ promotionBuyProducts, generalBuyProducts, products, bonusProducts, isMembership }) {
-    const totalBuyProducts = {};
-    let totalBuyProductQuantity = 0;
-    let generalBuyProductsTotalPrice = 0;
-
-    Object.entries(generalBuyProducts).forEach(([name, quantity]) => {
-      const prod = products.find((product) => product.getName() === name);
-      const price = prod.getPrice();
-
-      generalBuyProductsTotalPrice += price * quantity;
-      totalBuyProducts[name] = totalBuyProducts[name] + quantity || quantity;
-      totalBuyProductQuantity += quantity;
+    const { totalBuyProducts, ...footerData } = ReceiptCalculator.calculate({
+      generalBuyProducts,
+      promotionBuyProducts,
+      bonusProducts,
+      products,
+      isMembership,
     });
 
-    Object.entries(promotionBuyProducts).forEach(([name, quantity]) => {
-      totalBuyProducts[name] = totalBuyProducts[name] + quantity || quantity;
-      totalBuyProductQuantity += quantity;
-    });
-
-    let totalBuyPrice = 0;
-    let promotionSalePrice = 0;
-
-    // 구매 상품 내역, 증정 상품 내역, 금액 정보를 영수증 형식으로 출력한다.
+    this.printHeader();
+    this.printBody(totalBuyProducts, products, bonusProducts);
+    this.printFooter(footerData);
+  },
+  printHeader() {
     Console.print('\n==============W 편의점================\n');
+  },
+  printBody(totalBuyProducts, products, bonusProducts) {
+    this.printPerProduct(totalBuyProducts, products);
+    this.printBonusProducts(bonusProducts);
+  },
+  printPerProduct(totalBuyProducts, products) {
     Console.print('상품명		수량	금액\n');
     Object.entries(totalBuyProducts).forEach(([name, quantity]) => {
-      const prod = products.find((product) => product.getName() === name);
-      const price = prod.getPrice();
-      const totalPrice = price * quantity;
+      const totalPricePerProduct = ReceiptCalculator.calculateTotalPricePerProduct(products, name, quantity);
 
-      Console.print(`${name}		${quantity}	${totalPrice.toLocaleString()}\n`);
-
-      totalBuyPrice += totalPrice;
+      Console.print(`${name}		${quantity}	${totalPricePerProduct.toLocaleString()}\n`);
     });
-
+  },
+  printBonusProducts(bonusProducts) {
     Console.print('=============증	정===============\n');
     Object.entries(bonusProducts).forEach(([name, quantity]) => {
-      const prod = products.find((product) => product.getName() === name);
-      const price = prod.getPrice();
-
       Console.print(`${name}		${quantity}\n`);
-
-      promotionSalePrice += quantity * price;
     });
-
+  },
+  printFooter({ totalBuyProductQuantity, totalBuyPrice, promotionSalePrice, membershipSalePrice, totalPayPrice }) {
     Console.print('====================================\n');
     Console.print(`총구매액		${totalBuyProductQuantity}	${totalBuyPrice.toLocaleString()}\n`);
     Console.print(`행사할인			-${promotionSalePrice.toLocaleString()}`);
-
-    let membershipSalePrice = 0;
-
-    if (isMembership) {
-      membershipSalePrice = generalBuyProductsTotalPrice * 0.3;
-
-      if (membershipSalePrice > 8000) {
-        membershipSalePrice = 8000;
-      }
-    }
-
     Console.print(`멤버십할인			-${membershipSalePrice.toLocaleString()}\n`);
-
-    const totalPrice = totalBuyPrice - promotionSalePrice - membershipSalePrice;
-    Console.print(`내실돈			 ${totalPrice.toLocaleString()}\n`);
+    Console.print(`내실돈			 ${totalPayPrice.toLocaleString()}\n`);
   },
 };
 
