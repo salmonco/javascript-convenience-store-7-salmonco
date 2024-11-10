@@ -106,24 +106,23 @@ class App {
 
       if (remainBuyProductQuantity === 0) {
         // 프로모션 재고 충분
-      } else {
-        // 프로모션 재고 부족 -> 이거 정가로 구매할 거야?
-        // 일반 재고가 없는 경우 구매할 수 없다.
-        if (remainBuyProductQuantity > generalProduct.quantity) {
-          throwError(`재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.`);
+        continue;
+      }
 
-          return;
-        }
+      // 프로모션 재고 부족 -> 이거 정가로 구매할 거야?
+      // 일반 재고가 없는 경우 구매할 수 없다.
+      if (remainBuyProductQuantity > generalProduct.quantity) {
+        throwError(`재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.`);
 
-        // 프로모션 재고가 부족하여 일부 수량을 프로모션 혜택 없이 결제해야 하는지 확인한다.
-        const answer = await InputView.readBuyConinueChoice(buyProduct.name, remainBuyProductQuantity);
+        continue;
+      }
 
-        if (answer === 'Y') {
-          // Y: 일부 수량에 대해 정가로 결제한다.
-          this.#buyProducts.buyWithGeneralProduct(generalProduct, buyProduct.name, remainBuyProductQuantity);
-        } else {
-          // N: 정가로 결제해야하는 수량만큼 제외한 후 결제를 진행한다.
-        }
+      // 프로모션 재고가 부족하여 일부 수량을 프로모션 혜택 없이 결제해야 하는지 확인한다.
+      const answer = await InputView.readBuyConinueChoice(buyProduct.name, remainBuyProductQuantity);
+
+      if (answer === 'Y') {
+        // Y: 일부 수량에 대해 정가로 결제한다.
+        this.#buyProducts.buyWithGeneralProduct(generalProduct, buyProduct.name, remainBuyProductQuantity);
       }
     }
 
