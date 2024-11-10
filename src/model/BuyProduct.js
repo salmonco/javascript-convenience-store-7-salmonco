@@ -1,3 +1,5 @@
+import throwError from '../util/throwError.js';
+
 class BuyProduct {
   #promotionBuyProducts = {}; // { 상픔명: 수량 }
 
@@ -20,7 +22,7 @@ class BuyProduct {
   canBuyWithGeneralProduct(generalProduct, quantity) {
     // 일반 재고가 없는 경우 구매할 수 없다.
     if (quantity > generalProduct.quantity) {
-      this.throwError(`재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.`);
+      throwError(`재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.`);
 
       return false;
     }

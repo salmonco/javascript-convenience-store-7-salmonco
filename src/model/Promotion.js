@@ -36,8 +36,8 @@ class Promotion {
     return true;
   }
 
-  getPromotionResult(buyProduct) {
-    const prod = this.products.find((product) => product.name === buyProduct.name);
+  getPromotionResult(buyProduct, products) {
+    const prod = products.find((product) => product.name === buyProduct.name);
     const promotion = this.#promotions.find((promo) => promo.name === prod.promotion);
 
     const unit = promotion.buy + promotion.get;
