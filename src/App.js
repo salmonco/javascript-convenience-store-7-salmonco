@@ -56,7 +56,7 @@ class App {
           .getProductByName(buyProduct.name);
 
         // 프로모션 적용 불가
-        if (!this.#convenienceStore.getPromotion().canSaleWithPromotionProduct(promotionProduct)) {
+        if (!this.#convenienceStore.getPromotionManager().canSaleWithPromotionProduct(promotionProduct)) {
           // 일반 재고가 없는 경우 구매할 수 없다.
           if (this.#buyProducts.canBuyWithGeneralProduct(generalProduct, buyProduct.quantity)) {
             this.#buyProducts.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
@@ -65,9 +65,11 @@ class App {
           }
         }
 
-        const promotion = this.#convenienceStore.getPromotion().getPromotionByName(promotionProduct.getPromotion());
+        const promotion = this.#convenienceStore
+          .getPromotionManager()
+          .getPromotionByName(promotionProduct.getPromotion());
 
-        if (!this.#convenienceStore.getPromotion().isTodayPromotionDate(promotion)) {
+        if (!this.#convenienceStore.getPromotionManager().isTodayPromotionDate(promotion)) {
           // 프로모션 기간이 아닌 경우 정가로 구매
           this.#buyProducts.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
 
@@ -93,13 +95,13 @@ class App {
           // 프로모션 buy 수량만큼 가져왔음에도 get 수량보다 적게 가져왔을 경우 더 가져올 건지 묻는다.
           const answer = await InputView.readGetMorePromotionChoice(
             this.#convenienceStore.getInventory().getProducts(),
-            this.#convenienceStore.getPromotion().getPromotions(),
+            this.#convenienceStore.getPromotionManager().getPromotions(),
             buyProduct,
           );
 
           if (answer === 'Y') {
             // Y: 증정 받을 수 있는 상품을 추가한다.
-            const totalBuyProductQuantity = promotion.buy + promotion.get;
+            const totalBuyProductQuantity = promotion.getBuy() + promotion.getGet();
             const moreGetQuantity = totalBuyProductQuantity - buyProduct.quantity;
 
             this.#buyProducts.buyWithPromotionProduct(promotionProduct, buyProduct.name, totalBuyProductQuantity);
@@ -110,7 +112,7 @@ class App {
         }
 
         const { remainBuyProductQuantity, totalPromotionQuantity, totalBonusQuantity } = this.#convenienceStore
-          .getPromotion()
+          .getPromotionManager()
           .getPromotionResult(buyProduct, this.#convenienceStore.getInventory().getProducts());
 
         this.#buyProducts.buyWithPromotionProduct(promotionProduct, buyProduct.name, totalPromotionQuantity);

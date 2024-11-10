@@ -56,11 +56,11 @@ class BuyProduct {
   }
 
   isLessThanPromotionBuyQuantity(buyProduct, promotion) {
-    return buyProduct.quantity < promotion.buy;
+    return buyProduct.quantity < promotion.getBuy();
   }
 
   shouldPickMoreItem(buyProduct, promotion) {
-    return buyProduct.quantity === promotion.buy;
+    return buyProduct.quantity === promotion.getBuy();
   }
 }
 

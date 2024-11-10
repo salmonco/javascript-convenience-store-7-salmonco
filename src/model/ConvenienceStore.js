@@ -1,22 +1,22 @@
+import PromotionManager from '../controller/PromotionManager.js';
 import Inventory from './Inventory.js';
-import Promotion from './Promotion.js';
 
 class ConvenienceStore {
   #inventory = new Inventory();
 
-  #promotion = new Promotion();
+  #promotionManager = new PromotionManager();
 
   async init() {
     await this.#inventory.initInventory();
-    await this.#promotion.initPromotions();
+    await this.#promotionManager.initPromotions();
   }
 
   getInventory() {
     return this.#inventory;
   }
 
-  getPromotion() {
-    return this.#promotion;
+  getPromotionManager() {
+    return this.#promotionManager;
   }
 }
 

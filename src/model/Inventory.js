@@ -34,7 +34,7 @@ class Inventory {
   }
 
   isLessThanPromotionQuantity(promotionProduct, promotion) {
-    const unit = promotion.buy + promotion.get;
+    const unit = promotion.getBuy() + promotion.getGet();
 
     if (promotionProduct.getQuantity() < unit) {
       return false;
