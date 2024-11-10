@@ -1,4 +1,4 @@
-import { Console } from '@woowacourse/mission-utils';
+import { Console, DateTimes } from '@woowacourse/mission-utils';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -71,8 +71,20 @@ class App {
         continue;
       }
 
-      // 프로모션 적용 가능
       const promotion = this.promotions.find((promo) => promo.name === promotionProd.promotion);
+
+      // 오늘 날짜가 프로모션 기간 내에 포함되었는지 확인한다.
+      const now = DateTimes.now().toISOString().split('T')[0];
+      if (now < promotion.startDate || now > promotion.endDate) {
+        // 프로모션 기간이 아닌 경우 정가로 구매
+        this.generalBuyProducts = {
+          ...this.generalBuyProducts,
+          [buyProduct.name]: this.generalBuyProducts[buyProduct.name] + buyProduct.quantity || buyProduct.quantity,
+        };
+
+        generalProd.quantity -= buyProduct.quantity;
+        continue;
+      }
 
       if (buyProduct.quantity < promotion.buy) {
         // 프로모션 buy 수량보다 적게 가져왔을 경우 더 가져올 건지 묻지는 않는다.
