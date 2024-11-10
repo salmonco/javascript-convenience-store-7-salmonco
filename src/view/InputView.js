@@ -20,6 +20,7 @@ const InputView = {
       return null;
     }
   },
+
   async readPromotions() {
     // const filename = fileURLToPath(import.meta.url);
     // const dirname = path.dirname(filename);
@@ -34,9 +35,11 @@ const InputView = {
       return null;
     }
   },
+
   readItem() {
     return Console.readLineAsync('\n구매하실 상품명과 수량을 입력해 주세요. (예: [사이다-2],[감자칩-1])\n');
   },
+
   readGetMorePromotionChoice(products, promotions, buyProduct) {
     const moreGetQuantity = BuyProductManager.calculateMoreGetQuantity(products, promotions, buyProduct);
 
@@ -44,14 +47,17 @@ const InputView = {
       `현재 ${buyProduct.name}은(는) ${moreGetQuantity}개를 무료로 더 받을 수 있습니다. 추가하시겠습니까? (Y/N)\n`,
     );
   },
+
   readMembershipSaleChoice() {
     return Console.readLineAsync('\n멤버십 할인을 받으시겠습니까? (Y/N)\n');
   },
+
   readBuyConinueChoice(productName, remainBuyProductQuantity) {
     return Console.readLineAsync(
       `\n현재 ${productName} ${remainBuyProductQuantity}개는 프로모션 할인이 적용되지 않습니다. 그래도 구매하시겠습니까? (Y/N)\n`,
     );
   },
+
   readAdditionalBuyChoice() {
     return Console.readLineAsync('\n감사합니다. 구매하고 싶은 다른 상품이 있나요? (Y/N)\n');
   },
