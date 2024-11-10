@@ -168,9 +168,14 @@ class App {
     Console.print(`총구매액		${totalBuyProductQuantity}	${totalBuyPrice.toLocaleString()}\n`);
     Console.print(`행사할인			-${promotionSalePrice.toLocaleString()}`);
 
-    let membershipSalePrice = generalBuyProductsTotalPrice * 0.3;
-    if (membershipSalePrice > 8000) {
-      membershipSalePrice = 8000;
+    let membershipSalePrice = 0;
+
+    if (this.isMembership) {
+      membershipSalePrice = generalBuyProductsTotalPrice * 0.3;
+
+      if (membershipSalePrice > 8000) {
+        membershipSalePrice = 8000;
+      }
     }
 
     Console.print(`멤버십할인			-${membershipSalePrice.toLocaleString()}\n`);
