@@ -27,15 +27,21 @@ const ProductInputParser = {
     Object.entries(onlyPromotionProducts).forEach(([name, isPromotionOnly]) => {
       if (!isPromotionOnly) return;
 
-      const { price } = products.find((prod) => prod.name === name);
-      const promotionIdx = products.findIndex((prod) => prod.name === name);
+      this.addGeneralProduct(products, name);
+    });
+  },
+  addGeneralProduct(products, name) {
+    const { price } = products.find((prod) => prod.name === name);
+    const promotionIdx = products.findIndex((prod) => prod.name === name);
 
-      products.splice(promotionIdx + 1, 0, {
-        name,
-        price,
-        quantity: 0,
-        promotion: 'null',
-      });
+    this.insertGeneralProduct(products, name, price, promotionIdx);
+  },
+  insertGeneralProduct(products, name, price, promotionIdx) {
+    products.splice(promotionIdx, 0, {
+      name,
+      price,
+      quantity: 0,
+      promotion: 'null',
     });
   },
 };
