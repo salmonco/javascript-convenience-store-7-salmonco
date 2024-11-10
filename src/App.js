@@ -77,30 +77,50 @@ class App {
     const { promotionProduct, generalProduct } = this.#convenienceStore
       .getInventory()
       .getProductByName(buyProduct.name);
-
-    if (!PromotionManager.canSaleWithPromotionProduct(promotionProduct)) {
-      await this.processGeneralProduct(generalProduct, buyProduct);
-      return;
-    }
+    if (await this.handleGeneralProduct(promotionProduct, generalProduct, buyProduct)) return;
 
     const promotion = this.#convenienceStore.getPromotionManager().getPromotionByName(promotionProduct.getPromotion());
-
-    if (!PromotionManager.isTodayPromotionDate(promotion)) {
-      this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
-      return;
-    }
-
-    if (BuyProductManager.isLessThanPromotionBuyQuantity(buyProduct, promotion)) {
-      this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
-      return;
-    }
-
-    if (BuyProductManager.shouldPickMoreItem(buyProduct, promotion)) {
-      await this.processPromotionProduct(promotionProduct, generalProduct, buyProduct, promotion);
-      return;
-    }
+    if (await this.handlePromotionDate(promotion, generalProduct, buyProduct)) return;
+    if (await this.handlePromotionQuantity(buyProduct, promotion, generalProduct)) return;
+    if (await this.handleMoreItems(buyProduct, promotionProduct, generalProduct, promotion)) return;
 
     await this.processPromotionResult(promotionProduct, generalProduct, buyProduct);
+  }
+
+  async handleGeneralProduct(promotionProduct, generalProduct, buyProduct) {
+    if (!PromotionManager.canSaleWithPromotionProduct(promotionProduct)) {
+      await this.processGeneralProduct(generalProduct, buyProduct);
+
+      return true;
+    }
+    return false;
+  }
+
+  async handlePromotionDate(promotion, generalProduct, buyProduct) {
+    if (!PromotionManager.isTodayPromotionDate(promotion)) {
+      this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
+
+      return true;
+    }
+    return false;
+  }
+
+  async handlePromotionQuantity(buyProduct, promotion, generalProduct) {
+    if (BuyProductManager.isLessThanPromotionBuyQuantity(buyProduct, promotion)) {
+      this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
+
+      return true;
+    }
+    return false;
+  }
+
+  async handleMoreItems(buyProduct, promotionProduct, generalProduct, promotion) {
+    if (BuyProductManager.shouldPickMoreItem(buyProduct, promotion)) {
+      await this.processPromotionProduct(promotionProduct, generalProduct, buyProduct, promotion);
+
+      return true;
+    }
+    return false;
   }
 
   async processGeneralProduct(generalProduct, buyProduct) {
