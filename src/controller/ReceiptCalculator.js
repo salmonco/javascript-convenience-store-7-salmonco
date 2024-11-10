@@ -30,6 +30,7 @@ const ReceiptCalculator = {
       totalPayPrice,
     };
   },
+
   calculateGeneralBuyProductsTotalPrice(generalBuyProducts, products) {
     let generalBuyProductsTotalPrice = 0;
 
@@ -41,6 +42,7 @@ const ReceiptCalculator = {
 
     return generalBuyProductsTotalPrice;
   },
+
   calculateTotalBuyProductQuantity(generalBuyProducts, promotionBuyProducts) {
     let totalBuyProductQuantity = 0;
 
@@ -54,6 +56,7 @@ const ReceiptCalculator = {
 
     return totalBuyProductQuantity;
   },
+
   calculateTotalBuyProducts(generalBuyProducts, promotionBuyProducts) {
     const totalBuyProducts = {};
 
@@ -67,6 +70,7 @@ const ReceiptCalculator = {
 
     return totalBuyProducts;
   },
+
   calculateTotalBuyPrice(totalBuyProducts, products) {
     let totalBuyPrice = 0;
 
@@ -79,6 +83,7 @@ const ReceiptCalculator = {
 
     return totalBuyPrice;
   },
+
   calculatePromotionSalePrice(bonusProducts, products) {
     let promotionSalePrice = 0;
 
@@ -90,6 +95,7 @@ const ReceiptCalculator = {
 
     return promotionSalePrice;
   },
+
   calculateMembershipSalePrice(isMembership, generalBuyProductsTotalPrice) {
     if (!isMembership) {
       return 0;
@@ -103,9 +109,11 @@ const ReceiptCalculator = {
 
     return membershipSalePrice;
   },
+
   calculateTotalPayPrice(totalBuyPrice, promotionSalePrice, membershipSalePrice) {
     return totalBuyPrice - promotionSalePrice - membershipSalePrice;
   },
+
   calculateTotalPricePerProduct(products, name, quantity) {
     const price = products.find((product) => product.getName() === name).getPrice();
 
