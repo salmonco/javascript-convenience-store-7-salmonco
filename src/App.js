@@ -119,6 +119,35 @@ class App {
     } else {
       this.isMembership = false;
     }
+
+    let totalBuyPrice = 0;
+    let promotionSalePrice = 0;
+    // 구매 상품 내역, 증정 상품 내역, 금액 정보를 영수증 형식으로 출력한다.
+    Console.print('\n==============W 편의점================\n');
+    Console.print('상품명		수량	금액\n');
+    Object.entries(this.buyProducts).forEach(([name, quantity]) => {
+      const { price } = this.products.find((product) => product.name === name);
+      const totalPrice = price * quantity;
+
+      Console.print(`${name}		${quantity}	${totalPrice.toLocaleString()}\n`);
+
+      totalBuyPrice += totalPrice;
+    });
+    Console.print('=============증	정===============\n');
+    Object.entries(this.bonusProducts).forEach(([name, quantity]) => {
+      const { price } = this.products.find((product) => product.name === name);
+
+      Console.print(`${name}		${quantity}\n`);
+
+      promotionSalePrice += quantity * price;
+    });
+    Console.print('====================================\n');
+
+    const totalBuyProductQuantity = Object.entries(this.buyProducts).reduce((acc, [_, quantity]) => acc + quantity, 0);
+    Console.print(`총구매액		${totalBuyProductQuantity}	${totalBuyPrice.toLocaleString()}\n`);
+    Console.print(`행사할인			-${promotionSalePrice.toLocaleString()}`);
+    const totalPrice = totalBuyPrice - promotionSalePrice;
+    Console.print(`내실돈			 ${totalPrice.toLocaleString()}\n`);
   }
 
   async readProducts() {
