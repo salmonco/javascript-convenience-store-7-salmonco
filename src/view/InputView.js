@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { Console } from '@woowacourse/mission-utils';
-import InputParser from '../controller/InputParser';
+import InputParser from '../controller/InputParser.js';
 
 const InputView = {
   async readProducts() {
