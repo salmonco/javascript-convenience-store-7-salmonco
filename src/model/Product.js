@@ -34,17 +34,25 @@ class Product {
     return this.#promotion;
   }
 
-  toString() {
-    let quantityMessage = `${this.#quantity}개`;
-
+  getQuantityMessage() {
     if (this.#quantity === 0) {
-      quantityMessage = '재고 없음';
+      return '재고 없음';
     }
 
-    let promotionMessage = this.#promotion;
+    return `${this.#quantity}개`;
+  }
+
+  getPromotionMessage() {
     if (this.#promotion === 'null') {
-      promotionMessage = '';
+      return '';
     }
+
+    return this.#promotion;
+  }
+
+  toString() {
+    const quantityMessage = this.getQuantityMessage();
+    const promotionMessage = this.getPromotionMessage();
 
     return `- ${this.#name} ${this.#price.toLocaleString()}원 ${quantityMessage} ${promotionMessage}`;
   }
