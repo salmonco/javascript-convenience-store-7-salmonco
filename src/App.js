@@ -29,16 +29,7 @@ class App {
     await this.processBuyProducts();
 
     // 멤버십 할인 적용 여부를 입력 받는다.
-    const answer = await InputView.readMembershipSaleChoice();
-    this.#membership.setMembershipByAnswer(answer);
-
-    OutputView.printReceipt({
-      promotionBuyProducts: this.#buyProductManager.getPromotionBuyProducts(),
-      generalBuyProducts: this.#buyProductManager.getGeneralBuyProducts(),
-      products: this.#convenienceStore.getInventory().getProducts(),
-      bonusProducts: this.#buyProductManager.getBonusProducts(),
-      isMembership: this.#membership.getMembership(),
-    });
+    await this.askForMembershipSale();
 
     // 영수증 출력
     this.printReceipt();
@@ -47,104 +38,21 @@ class App {
     await this.askForAdditionalBuy();
   }
 
-  parseBuyProducts(buyString) {
-    const buyList = splitWithComma(buyString);
-
-    return BuyProductInputParser.splitWithHyphen(buyList);
+  async askForMembershipSale() {
+    const answer = await InputView.readMembershipSaleChoice();
+    this.#membership.setMembershipByAnswer(answer);
   }
 
   async processBuyProducts() {
     try {
+      this.#buyProductManager.initBuyProducts();
+
       const buyString = await InputView.readItem();
       const buyProducts = this.parseBuyProducts(buyString);
 
       /* eslint-disable no-restricted-syntax, no-await-in-loop */
       for (const buyProduct of buyProducts) {
-        const { promotionProduct, generalProduct } = this.#convenienceStore
-          .getInventory()
-          .getProductByName(buyProduct.name);
-
-        // 프로모션 적용 불가
-        if (!PromotionManager.canSaleWithPromotionProduct(promotionProduct)) {
-          // 일반 재고가 없는 경우 구매할 수 없다.
-          if (BuyProductManager.canBuyWithGeneralProduct(generalProduct, buyProduct.quantity)) {
-            this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
-
-            continue;
-          }
-        }
-
-        const promotion = this.#convenienceStore
-          .getPromotionManager()
-          .getPromotionByName(promotionProduct.getPromotion());
-
-        if (!PromotionManager.isTodayPromotionDate(promotion)) {
-          // 프로모션 기간이 아닌 경우 정가로 구매
-          this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
-
-          continue;
-        }
-
-        if (BuyProductManager.isLessThanPromotionBuyQuantity(buyProduct, promotion)) {
-          // 프로모션 buy 수량보다 적게 가져왔을 경우 더 가져올 건지 묻지는 않는다.
-          // 일반 재고로 구매
-          this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
-
-          continue;
-        }
-
-        if (BuyProductManager.isLessThanPromotionBuyQuantity(buyProduct, promotion)) {
-          this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
-
-          continue;
-        }
-
-        if (BuyProductManager.shouldPickMoreItem(buyProduct, promotion)) {
-          // 1개 더 가져올랬는데 재고 부족하면? 정가로 사야 함 -> processPromotion
-          // 프로모션 buy 수량만큼 가져왔음에도 get 수량보다 적게 가져왔을 경우 더 가져올 건지 묻는다.
-          const answer = await InputView.readGetMorePromotionChoice(
-            this.#convenienceStore.getInventory().getProducts(),
-            this.#convenienceStore.getPromotionManager().getPromotions(),
-            buyProduct,
-          );
-
-          if (answer === 'Y') {
-            // Y: 증정 받을 수 있는 상품을 추가한다.
-            const totalBuyProductQuantity = promotion.getBuy() + promotion.getGet();
-            const moreGetQuantity = totalBuyProductQuantity - buyProduct.quantity;
-
-            this.#buyProductManager.buyWithPromotionProduct(promotionProduct, buyProduct.name, totalBuyProductQuantity);
-            this.#buyProductManager.addBonusProductQuantity(buyProduct.name, moreGetQuantity);
-          }
-
-          continue;
-        }
-
-        const { remainBuyProductQuantity, totalPromotionQuantity, totalBonusQuantity } = this.#convenienceStore
-          .getPromotionManager()
-          .getPromotionResult(buyProduct, this.#convenienceStore.getInventory().getProducts());
-
-        this.#buyProductManager.buyWithPromotionProduct(promotionProduct, buyProduct.name, totalPromotionQuantity);
-        this.#buyProductManager.addBonusProductQuantity(buyProduct.name, totalBonusQuantity);
-
-        if (remainBuyProductQuantity === 0) {
-          // 프로모션 재고 충분
-          continue;
-        }
-
-        // 프로모션 재고 부족 -> 이거 정가로 구매할 거야?
-        // 일반 재고가 없는 경우 구매할 수 없다.
-        if (remainBuyProductQuantity > generalProduct.getQuantity()) {
-          throwError(ERROR_MESSAGES.EXCEED_STOCK);
-        }
-
-        // 프로모션 재고가 부족하여 일부 수량을 프로모션 혜택 없이 결제해야 하는지 확인한다.
-        const answer = await InputView.readBuyConinueChoice(buyProduct.name, remainBuyProductQuantity);
-
-        if (answer === 'Y') {
-          // Y: 일부 수량에 대해 정가로 결제한다.
-          this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, remainBuyProductQuantity);
-        }
+        await this.processBuyProduct(buyProduct);
       }
     } catch (error) {
       Console.print(`[ERROR] ${ERROR_MESSAGES.INVALID_INPUT}\n${error.message}`);
@@ -152,11 +60,95 @@ class App {
     }
   }
 
+  parseBuyProducts(buyString) {
+    const buyList = splitWithComma(buyString);
+
+    return BuyProductInputParser.splitWithHyphen(buyList);
+  }
+
+  async processBuyProduct(buyProduct) {
+    const { promotionProduct, generalProduct } = this.#convenienceStore
+      .getInventory()
+      .getProductByName(buyProduct.name);
+
+    if (!PromotionManager.canSaleWithPromotionProduct(promotionProduct)) {
+      await this.processGeneralProduct(generalProduct, buyProduct);
+      return;
+    }
+
+    const promotion = this.#convenienceStore.getPromotionManager().getPromotionByName(promotionProduct.getPromotion());
+
+    if (!PromotionManager.isTodayPromotionDate(promotion)) {
+      this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
+      return;
+    }
+
+    if (BuyProductManager.isLessThanPromotionBuyQuantity(buyProduct, promotion)) {
+      this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
+      return;
+    }
+
+    if (BuyProductManager.shouldPickMoreItem(buyProduct, promotion)) {
+      await this.processPromotionProduct(promotionProduct, generalProduct, buyProduct, promotion);
+      return;
+    }
+
+    await this.processPromotionResult(promotionProduct, generalProduct, buyProduct);
+  }
+
+  async processGeneralProduct(generalProduct, buyProduct) {
+    if (BuyProductManager.canBuyWithGeneralProduct(generalProduct, buyProduct.quantity)) {
+      this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
+    }
+  }
+
+  async processPromotionProduct(promotionProduct, generalProduct, buyProduct, promotion) {
+    const answer = await InputView.readGetMorePromotionChoice(
+      this.#convenienceStore.getInventory().getProducts(),
+      this.#convenienceStore.getPromotionManager().getPromotions(),
+      buyProduct,
+    );
+
+    if (answer === 'Y') {
+      const totalBuyProductQuantity = promotion.getBuy() + promotion.getGet();
+      const moreGetQuantity = totalBuyProductQuantity - buyProduct.quantity;
+
+      this.#buyProductManager.buyWithPromotionProduct(promotionProduct, buyProduct.name, totalBuyProductQuantity);
+      this.#buyProductManager.addBonusProductQuantity(buyProduct.name, moreGetQuantity);
+    }
+  }
+
+  async processPromotionResult(promotionProduct, generalProduct, buyProduct) {
+    const { remainBuyProductQuantity, totalPromotionQuantity, totalBonusQuantity } = this.#convenienceStore
+      .getPromotionManager()
+      .getPromotionResult(buyProduct, this.#convenienceStore.getInventory().getProducts());
+
+    this.#buyProductManager.buyWithPromotionProduct(promotionProduct, buyProduct.name, totalPromotionQuantity);
+    this.#buyProductManager.addBonusProductQuantity(buyProduct.name, totalBonusQuantity);
+
+    if (remainBuyProductQuantity === 0) {
+      return;
+    }
+
+    if (remainBuyProductQuantity > generalProduct.getQuantity()) {
+      throwError(ERROR_MESSAGES.EXCEED_STOCK);
+    }
+
+    const answer = await InputView.readBuyConinueChoice(buyProduct.name, remainBuyProductQuantity);
+
+    if (answer === 'Y') {
+      this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, remainBuyProductQuantity);
+    }
+  }
+
   async askForAdditionalBuy() {
     const answer = await InputView.readAdditionalBuyChoice();
 
     if (answer === 'Y') {
+      OutputView.printWelcome();
+      OutputView.printProducts(this.#convenienceStore.getInventory().getProducts());
       await this.processBuyProducts();
+      await this.askForMembershipSale();
       this.printReceipt();
       await this.askForAdditionalBuy();
     }

@@ -7,6 +7,12 @@ class BuyProductManager {
 
   #bonusProducts = {}; // { 상픔명: 수량 }
 
+  initBuyProducts() {
+    this.#promotionBuyProducts = {};
+    this.#generalBuyProducts = {};
+    this.#bonusProducts = {};
+  }
+
   getPromotionBuyProducts() {
     return this.#promotionBuyProducts;
   }
