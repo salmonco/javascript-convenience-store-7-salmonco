@@ -64,7 +64,7 @@ class App {
         // 프로모션 적용 불가
         if (!this.#convenienceStore.getPromotionManager().canSaleWithPromotionProduct(promotionProduct)) {
           // 일반 재고가 없는 경우 구매할 수 없다.
-          if (this.#buyProductManager.canBuyWithGeneralProduct(generalProduct, buyProduct.quantity)) {
+          if (BuyProductManager.canBuyWithGeneralProduct(generalProduct, buyProduct.quantity)) {
             this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
 
             continue;
@@ -82,7 +82,7 @@ class App {
           continue;
         }
 
-        if (this.#buyProductManager.isLessThanPromotionBuyQuantity(buyProduct, promotion)) {
+        if (BuyProductManager.isLessThanPromotionBuyQuantity(buyProduct, promotion)) {
           // 프로모션 buy 수량보다 적게 가져왔을 경우 더 가져올 건지 묻지는 않는다.
           // 일반 재고로 구매
           this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
@@ -90,13 +90,13 @@ class App {
           continue;
         }
 
-        if (this.#buyProductManager.isLessThanPromotionBuyQuantity(buyProduct, promotion)) {
+        if (BuyProductManager.isLessThanPromotionBuyQuantity(buyProduct, promotion)) {
           this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
 
           continue;
         }
 
-        if (this.#buyProductManager.shouldPickMoreItem(buyProduct, promotion)) {
+        if (BuyProductManager.shouldPickMoreItem(buyProduct, promotion)) {
           // 1개 더 가져올랬는데 재고 부족하면? 정가로 사야 함 -> processPromotion
           // 프로모션 buy 수량만큼 가져왔음에도 get 수량보다 적게 가져왔을 경우 더 가져올 건지 묻는다.
           const answer = await InputView.readGetMorePromotionChoice(
