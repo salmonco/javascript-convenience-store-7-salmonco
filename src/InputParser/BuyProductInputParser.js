@@ -4,6 +4,7 @@ const BuyProductInputParser = {
 
     return { name, quantity: Number(quantity) };
   },
+
   splitWithHyphen(array) {
     return array.map(this.parseBuyItem);
   },
