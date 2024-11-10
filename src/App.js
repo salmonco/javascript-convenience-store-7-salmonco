@@ -26,7 +26,7 @@ class App {
     OutputView.printProducts(this.#convenienceStore.getInventory().getProducts());
 
     // 구매할 상품명과 수량을 입력받는다.
-    await this.processBuyItems();
+    await this.processBuyProducts();
 
     // 멤버십 할인 적용 여부를 입력 받는다.
     const answer = await InputView.readMembershipSaleChoice();
@@ -47,15 +47,16 @@ class App {
     await this.askForAdditionalBuy();
   }
 
-  async processBuyItems() {
+  parseBuyProducts(buyString) {
+    const buyList = splitWithComma(buyString);
+
+    return BuyProductInputParser.splitWithHyphen(buyList);
+  }
+
+  async processBuyProducts() {
     try {
       const buyString = await InputView.readItem();
-
-      // 개별 상품을 쉼표(,)로 파싱한다.
-      const buyList = splitWithComma(buyString);
-
-      // 상품명과 수량을 하이픈(-)으로 파싱한다.
-      const buyProducts = BuyProductInputParser.splitWithHyphen(buyList);
+      const buyProducts = this.parseBuyProducts(buyString);
 
       /* eslint-disable no-restricted-syntax, no-await-in-loop */
       for (const buyProduct of buyProducts) {
@@ -147,7 +148,7 @@ class App {
       }
     } catch (error) {
       Console.print(`[ERROR] ${ERROR_MESSAGES.INVALID_INPUT}\n${error.message}`);
-      await this.processBuyItems(); // 재귀 호출로 다시 입력받기
+      await this.processBuyProducts(); // 재귀 호출로 다시 입력받기
     }
   }
 
@@ -155,7 +156,7 @@ class App {
     const answer = await InputView.readAdditionalBuyChoice();
 
     if (answer === 'Y') {
-      await this.processBuyItems();
+      await this.processBuyProducts();
       this.printReceipt();
       await this.askForAdditionalBuy();
     }
