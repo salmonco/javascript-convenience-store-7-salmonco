@@ -33,7 +33,8 @@ class Inventory {
     return { promotionProduct, generalProduct };
   }
 
-  isLessThanPromotionQuantity(promotionProduct, promotion) {
+  // 어디서 사용하는 거였더라
+  static isLessThanPromotionQuantity(promotionProduct, promotion) {
     const unit = promotion.getBuy() + promotion.getGet();
 
     if (promotionProduct.getQuantity() < unit) {

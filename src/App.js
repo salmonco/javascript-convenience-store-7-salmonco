@@ -7,6 +7,7 @@ import ConvenienceStore from './model/ConvenienceStore.js';
 import BuyProductManager from './controller/BuyProductManager.js';
 import splitWithComma from './util/splitWithComma.js';
 import BuyProductInputParser from './InputParser/BuyProductInputParser.js';
+import PromotionManager from './controller/PromotionManager.js';
 
 class App {
   #convenienceStore = new ConvenienceStore();
@@ -62,7 +63,7 @@ class App {
           .getProductByName(buyProduct.name);
 
         // 프로모션 적용 불가
-        if (!this.#convenienceStore.getPromotionManager().canSaleWithPromotionProduct(promotionProduct)) {
+        if (!PromotionManager.canSaleWithPromotionProduct(promotionProduct)) {
           // 일반 재고가 없는 경우 구매할 수 없다.
           if (BuyProductManager.canBuyWithGeneralProduct(generalProduct, buyProduct.quantity)) {
             this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
@@ -75,7 +76,7 @@ class App {
           .getPromotionManager()
           .getPromotionByName(promotionProduct.getPromotion());
 
-        if (!this.#convenienceStore.getPromotionManager().isTodayPromotionDate(promotion)) {
+        if (!PromotionManager.isTodayPromotionDate(promotion)) {
           // 프로모션 기간이 아닌 경우 정가로 구매
           this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
 

@@ -27,7 +27,21 @@ class PromotionManager {
     return this.#promotions.find((promotion) => promotion.getName() === name);
   }
 
-  canSaleWithPromotionProduct(promotionProduct) {
+  getPromotionResult(buyProduct, products) {
+    const prod = products.find((product) => product.getName() === buyProduct.name);
+    const promotion = this.#promotions.find((promo) => promo.getName() === prod.getPromotion());
+
+    const unit = promotion.getBuy() + promotion.getGet();
+    const possiblePromotionCount = this.#getPossiblePromotionCount(buyProduct.quantity, prod.getQuantity(), unit);
+
+    const totalPromotionQuantity = possiblePromotionCount * unit;
+    const remainBuyProductQuantity = buyProduct.quantity - totalPromotionQuantity;
+    const totalBonusQuantity = possiblePromotionCount * promotion.getGet();
+
+    return { remainBuyProductQuantity, totalPromotionQuantity, totalBonusQuantity };
+  }
+
+  static canSaleWithPromotionProduct(promotionProduct) {
     if (promotionProduct === undefined) {
       return false;
     }
@@ -35,7 +49,7 @@ class PromotionManager {
     return true;
   }
 
-  isTodayPromotionDate(promotion) {
+  static isTodayPromotionDate(promotion) {
     // 오늘 날짜가 프로모션 기간 내에 포함되었는지 확인한다.
     const now = DateTimes.now().toISOString().split('T')[0];
 
@@ -46,21 +60,7 @@ class PromotionManager {
     return true;
   }
 
-  getPromotionResult(buyProduct, products) {
-    const prod = products.find((product) => product.getName() === buyProduct.name);
-    const promotion = this.#promotions.find((promo) => promo.getName() === prod.getPromotion());
-
-    const unit = promotion.getBuy() + promotion.getGet();
-    const possiblePromotionCount = this.getPossiblePromotionCount(buyProduct.quantity, prod.getQuantity(), unit);
-
-    const totalPromotionQuantity = possiblePromotionCount * unit;
-    const remainBuyProductQuantity = buyProduct.quantity - totalPromotionQuantity;
-    const totalBonusQuantity = possiblePromotionCount * promotion.getGet();
-
-    return { remainBuyProductQuantity, totalPromotionQuantity, totalBonusQuantity };
-  }
-
-  getPossiblePromotionCount(buyProductQuantity, prodQuantity, unit) {
+  #getPossiblePromotionCount(buyProductQuantity, prodQuantity, unit) {
     const possiblePromotionCountWithBuyProduct = Math.floor(buyProductQuantity / unit);
     const possiblePromotionCountWithInventory = Math.floor(prodQuantity / unit);
 
