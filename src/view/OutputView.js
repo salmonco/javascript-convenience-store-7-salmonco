@@ -1,9 +1,10 @@
 import { Console } from '@woowacourse/mission-utils';
 import ReceiptCalculator from '../controller/ReceiptCalculator.js';
+import { OUTPUT_MESSAGES } from '../constant/message.js';
 
 const OutputView = {
   printWelcome() {
-    Console.print('안녕하세요. W편의점입니다.\n현재 보유하고 있는 상품입니다.\n');
+    Console.print(OUTPUT_MESSAGES.WELCOME);
   },
 
   printProducts(products) {
@@ -27,7 +28,7 @@ const OutputView = {
   },
 
   printHeader() {
-    Console.print('\n==============W 편의점================\n');
+    Console.print(OUTPUT_MESSAGES.RECEIPT_HEADER);
   },
 
   printBody(totalBuyProducts, products, bonusProducts) {
@@ -36,27 +37,27 @@ const OutputView = {
   },
 
   printPerProduct(totalBuyProducts, products) {
-    Console.print('상품명		수량	금액\n');
+    Console.print(OUTPUT_MESSAGES.PRODUCT_LIST_HEADER);
     Object.entries(totalBuyProducts).forEach(([name, quantity]) => {
       const totalPricePerProduct = ReceiptCalculator.calculateTotalPricePerProduct(products, name, quantity);
 
-      Console.print(`${name}		${quantity}	${totalPricePerProduct.toLocaleString()}\n`);
+      Console.print(OUTPUT_MESSAGES.PRODUCT_LIST_ITEM(name, quantity, totalPricePerProduct));
     });
   },
 
   printBonusProducts(bonusProducts) {
-    Console.print('=============증	정===============\n');
+    Console.print(OUTPUT_MESSAGES.BONUS_HEADER);
     Object.entries(bonusProducts).forEach(([name, quantity]) => {
-      Console.print(`${name}		${quantity}\n`);
+      Console.print(OUTPUT_MESSAGES.BONUS_ITEM(name, quantity));
     });
   },
 
   printFooter({ totalBuyProductQuantity, totalBuyPrice, promotionSalePrice, membershipSalePrice, totalPayPrice }) {
-    Console.print('====================================\n');
-    Console.print(`총구매액		${totalBuyProductQuantity}	${totalBuyPrice.toLocaleString()}\n`);
-    Console.print(`행사할인			-${promotionSalePrice.toLocaleString()}`);
-    Console.print(`멤버십할인			-${membershipSalePrice.toLocaleString()}\n`);
-    Console.print(`내실돈			 ${totalPayPrice.toLocaleString()}\n`);
+    Console.print(OUTPUT_MESSAGES.RECEIPT_FOOTER);
+    Console.print(OUTPUT_MESSAGES.TOTAL_BUY_AMOUNT(totalBuyProductQuantity, totalBuyPrice));
+    Console.print(OUTPUT_MESSAGES.PROMOTION_DISCOUNT(promotionSalePrice));
+    Console.print(OUTPUT_MESSAGES.MEMBERSHIP_DISCOUNT(membershipSalePrice));
+    Console.print(OUTPUT_MESSAGES.TOTAL_PAY_AMOUNT(totalPayPrice));
   },
 };
 

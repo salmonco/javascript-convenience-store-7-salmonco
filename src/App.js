@@ -8,6 +8,7 @@ import BuyProductManager from './controller/BuyProductManager.js';
 import splitWithComma from './util/splitWithComma.js';
 import BuyProductInputParser from './InputParser/BuyProductInputParser.js';
 import PromotionManager from './controller/PromotionManager.js';
+import { ERROR_MESSAGES } from './constant/message.js';
 
 class App {
   #convenienceStore = new ConvenienceStore();
@@ -133,7 +134,7 @@ class App {
         // 프로모션 재고 부족 -> 이거 정가로 구매할 거야?
         // 일반 재고가 없는 경우 구매할 수 없다.
         if (remainBuyProductQuantity > generalProduct.getQuantity()) {
-          throwError(`재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.`);
+          throwError(ERROR_MESSAGES.EXCEED_STOCK);
         }
 
         // 프로모션 재고가 부족하여 일부 수량을 프로모션 혜택 없이 결제해야 하는지 확인한다.
@@ -145,7 +146,7 @@ class App {
         }
       }
     } catch (error) {
-      Console.print(`[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요.\n${error.message}`);
+      Console.print(`[ERROR] ${ERROR_MESSAGES.INVALID_INPUT}\n${error.message}`);
       await this.processBuyItems(); // 재귀 호출로 다시 입력받기
     }
   }
