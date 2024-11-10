@@ -39,15 +39,20 @@ class Promotion {
     const promotion = this.#promotions.find((promo) => promo.name === prod.promotion);
 
     const unit = promotion.buy + promotion.get;
-    const possiblePromotionCountWithBuyProduct = Math.floor(buyProduct.quantity / unit);
-    const possiblePromotionCountWithInventory = Math.floor(prod.quantity / unit);
+    const possiblePromotionCount = this.getPossiblePromotionCount(buyProduct.quantity, prod.quantity, unit);
 
-    const possiblePromotionCount = Math.min(possiblePromotionCountWithBuyProduct, possiblePromotionCountWithInventory);
     const totalPromotionQuantity = possiblePromotionCount * unit;
     const remainBuyProductQuantity = buyProduct.quantity - totalPromotionQuantity;
     const totalBonusQuantity = possiblePromotionCount * promotion.get;
 
     return { remainBuyProductQuantity, totalPromotionQuantity, totalBonusQuantity };
+  }
+
+  getPossiblePromotionCount(buyProductQuantity, prodQuantity, unit) {
+    const possiblePromotionCountWithBuyProduct = Math.floor(buyProductQuantity / unit);
+    const possiblePromotionCountWithInventory = Math.floor(prodQuantity / unit);
+
+    return Math.min(possiblePromotionCountWithBuyProduct, possiblePromotionCountWithInventory);
   }
 }
 
