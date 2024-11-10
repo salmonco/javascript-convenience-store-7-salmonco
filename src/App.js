@@ -28,7 +28,6 @@ class App {
 
     // 멤버십 할인 적용 여부를 입력 받는다.
     const answer = await InputView.readMembershipSaleChoice();
-
     this.#membership.setMembershipByAnswer(answer);
 
     OutputView.printReceipt({
@@ -38,6 +37,12 @@ class App {
       bonusProducts: this.#buyProductManager.getBonusProducts(),
       isMembership: this.#membership.getMembership(),
     });
+
+    // 영수증 출력
+    this.printReceipt();
+
+    // 추가 구매 여부를 입력 받는다.
+    await this.askForAdditionalBuy();
   }
 
   async processBuyItems() {
@@ -142,6 +147,26 @@ class App {
       Console.print(error.message);
       await this.processBuyItems(); // 재귀 호출로 다시 입력받기
     }
+  }
+
+  async askForAdditionalBuy() {
+    const answer = await InputView.readAdditionalBuyChoice();
+
+    if (answer === 'Y') {
+      await this.processBuyItems();
+      this.printReceipt();
+      await this.askForAdditionalBuy();
+    }
+  }
+
+  printReceipt() {
+    OutputView.printReceipt({
+      promotionBuyProducts: this.#buyProductManager.getPromotionBuyProducts(),
+      generalBuyProducts: this.#buyProductManager.getGeneralBuyProducts(),
+      products: this.#convenienceStore.getInventory().getProducts(),
+      bonusProducts: this.#buyProductManager.getBonusProducts(),
+      isMembership: this.#membership.getMembership(),
+    });
   }
 }
 
