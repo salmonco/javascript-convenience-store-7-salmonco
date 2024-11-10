@@ -144,7 +144,7 @@ class App {
         }
       }
     } catch (error) {
-      Console.print(error.message);
+      Console.print(`[ERROR] 올바르지 않은 형식으로 입력했습니다. 다시 입력해 주세요.\n${error.message}`);
       await this.processBuyItems(); // 재귀 호출로 다시 입력받기
     }
   }
