@@ -1,4 +1,6 @@
 import { DateTimes } from '@woowacourse/mission-utils';
+import InputView from '../view/InputView.js';
+import InputParser from '../controller/InputParser.js';
 
 class Promotion {
   #promotions = []; // [{ name, buy, get, startDate, endDate }]
@@ -35,11 +37,11 @@ class Promotion {
   }
 
   getPromotionResult(buyProduct, products) {
-    const prod = products.find((product) => product.name === buyProduct.name);
-    const promotion = this.#promotions.find((promo) => promo.name === prod.promotion);
+    const prod = products.find((product) => product.getName() === buyProduct.name);
+    const promotion = this.#promotions.find((promo) => promo.name === prod.getPromotion());
 
     const unit = promotion.buy + promotion.get;
-    const possiblePromotionCount = this.getPossiblePromotionCount(buyProduct.quantity, prod.quantity, unit);
+    const possiblePromotionCount = this.getPossiblePromotionCount(buyProduct.quantity, prod.getQuantity(), unit);
 
     const totalPromotionQuantity = possiblePromotionCount * unit;
     const remainBuyProductQuantity = buyProduct.quantity - totalPromotionQuantity;
@@ -53,6 +55,13 @@ class Promotion {
     const possiblePromotionCountWithInventory = Math.floor(prodQuantity / unit);
 
     return Math.min(possiblePromotionCountWithBuyProduct, possiblePromotionCountWithInventory);
+  }
+
+  async initPromotions() {
+    const promotionsData = await InputView.readPromotions();
+    const promotions = InputParser.parsePromotions(promotionsData);
+
+    this.#promotions = promotions;
   }
 }
 

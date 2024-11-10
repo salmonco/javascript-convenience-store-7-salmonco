@@ -61,8 +61,8 @@ const InputParser = {
     });
   },
   calculateMoreGetQuantity(products, promotions, buyProduct) {
-    const prod = products.find((product) => product.name === buyProduct.name);
-    const promotion = promotions.find((promo) => promo.name === prod.promotion);
+    const prod = products.find((product) => product.getName() === buyProduct.name);
+    const promotion = promotions.find((promo) => promo.name === prod.getPromotion());
     const moreGetQuantity = promotion.buy + promotion.get - buyProduct.quantity;
 
     return moreGetQuantity;

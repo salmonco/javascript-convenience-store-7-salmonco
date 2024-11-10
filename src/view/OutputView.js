@@ -6,28 +6,17 @@ const OutputView = {
   },
   printProducts(products) {
     products.forEach((product) => {
-      const { name, price, quantity, promotion } = product;
-
-      let quantityMessage = `${quantity}개`;
-
-      if (quantity === 0) {
-        quantityMessage = '재고 없음';
-      }
-
-      let promotionMessage = promotion;
-      if (promotion === 'null') {
-        promotionMessage = '';
-      }
-
-      Console.print(`- ${name} ${price.toLocaleString()}원 ${quantityMessage} ${promotionMessage}`);
+      Console.print(product.toString());
     });
   },
   printReceipt({ promotionBuyProducts, generalBuyProducts, products, bonusProducts, isMembership }) {
     const totalBuyProducts = {};
     let totalBuyProductQuantity = 0;
     let generalBuyProductsTotalPrice = 0;
+
     Object.entries(generalBuyProducts).forEach(([name, quantity]) => {
-      const { price } = products.find((product) => product.name === name);
+      const prod = products.find((product) => product.getName() === name);
+      const price = prod.getPrice();
 
       generalBuyProductsTotalPrice += price * quantity;
       totalBuyProducts[name] = totalBuyProducts[name] + quantity || quantity;
@@ -41,11 +30,13 @@ const OutputView = {
 
     let totalBuyPrice = 0;
     let promotionSalePrice = 0;
+
     // 구매 상품 내역, 증정 상품 내역, 금액 정보를 영수증 형식으로 출력한다.
     Console.print('\n==============W 편의점================\n');
     Console.print('상품명		수량	금액\n');
     Object.entries(totalBuyProducts).forEach(([name, quantity]) => {
-      const { price } = products.find((product) => product.name === name);
+      const prod = products.find((product) => product.getName() === name);
+      const price = prod.getPrice();
       const totalPrice = price * quantity;
 
       Console.print(`${name}		${quantity}	${totalPrice.toLocaleString()}\n`);
@@ -55,7 +46,8 @@ const OutputView = {
 
     Console.print('=============증	정===============\n');
     Object.entries(bonusProducts).forEach(([name, quantity]) => {
-      const { price } = products.find((product) => product.name === name);
+      const prod = products.find((product) => product.getName() === name);
+      const price = prod.getPrice();
 
       Console.print(`${name}		${quantity}\n`);
 

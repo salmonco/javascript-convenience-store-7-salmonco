@@ -2,16 +2,13 @@ import { Console } from '@woowacourse/mission-utils';
 import InputView from './view/InputView.js';
 import InputParser from './controller/InputParser.js';
 import OutputView from './view/OutputView.js';
-import Inventory from './model/Inventory.js';
-import Promotion from './model/Promotion.js';
 import BuyProduct from './model/BuyProduct.js';
 import Membership from './model/Membership.js';
 import throwError from './util/throwError.js';
+import ConvenienceStore from './model/ConvenienceStore.js';
 
 class App {
-  #inventory = new Inventory();
-
-  #promotion = new Promotion();
+  #convenienceStore = new ConvenienceStore();
 
   #buyProducts = new BuyProduct();
 
@@ -19,17 +16,11 @@ class App {
 
   async run() {
     // 상품 목록과 행사 목록을 파일 입출력을 통해 불러온다.
-    const productsData = await InputView.readProducts();
-    const products = InputParser.parseProducts(productsData);
-    this.#inventory.setProducts(products);
-
-    const promotionsData = await InputView.readPromotions();
-    const promotions = InputParser.parsePromotions(promotionsData);
-    this.#promotion.setPromotions(promotions);
+    await this.#convenienceStore.init();
 
     // 환영 인사와 함께 상품명, 가격, 프로모션 이름, 재고를 안내한다. 만약 재고가 0개라면 재고 없음을 출력한다.
     OutputView.printWelcome();
-    OutputView.printProducts(products);
+    OutputView.printProducts(this.#convenienceStore.getInventory().getProducts());
 
     // 구매할 상품명과 수량을 입력받는다.
     await this.processBuyItems();
@@ -42,7 +33,7 @@ class App {
     OutputView.printReceipt({
       promotionBuyProducts: this.#buyProducts.getPromotionBuyProducts(),
       generalBuyProducts: this.#buyProducts.getGeneralBuyProducts(),
-      products: this.#inventory.getProducts(),
+      products: this.#convenienceStore.getInventory().getProducts(),
       bonusProducts: this.#buyProducts.getBonusProducts(),
       isMembership: this.#membership.getMembership(),
     });
@@ -60,10 +51,12 @@ class App {
 
       /* eslint-disable no-restricted-syntax, no-await-in-loop */
       for (const buyProduct of buyProducts) {
-        const { promotionProduct, generalProduct } = this.#inventory.getProductByName(buyProduct.name);
+        const { promotionProduct, generalProduct } = this.#convenienceStore
+          .getInventory()
+          .getProductByName(buyProduct.name);
 
         // 프로모션 적용 불가
-        if (!this.#promotion.canSaleWithPromotionProduct(promotionProduct)) {
+        if (!this.#convenienceStore.getPromotion().canSaleWithPromotionProduct(promotionProduct)) {
           // 일반 재고가 없는 경우 구매할 수 없다.
           if (this.#buyProducts.canBuyWithGeneralProduct(generalProduct, buyProduct.quantity)) {
             this.#buyProducts.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
@@ -72,9 +65,9 @@ class App {
           }
         }
 
-        const promotion = this.#promotion.getPromotionByName(promotionProduct.promotion);
+        const promotion = this.#convenienceStore.getPromotion().getPromotionByName(promotionProduct.getPromotion());
 
-        if (!this.#promotion.isTodayPromotionDate(promotion)) {
+        if (!this.#convenienceStore.getPromotion().isTodayPromotionDate(promotion)) {
           // 프로모션 기간이 아닌 경우 정가로 구매
           this.#buyProducts.buyWithGeneralProduct(generalProduct, buyProduct.name, buyProduct.quantity);
 
@@ -99,8 +92,8 @@ class App {
           // 1개 더 가져올랬는데 재고 부족하면? 정가로 사야 함 -> processPromotion
           // 프로모션 buy 수량만큼 가져왔음에도 get 수량보다 적게 가져왔을 경우 더 가져올 건지 묻는다.
           const answer = await InputView.readGetMorePromotionChoice(
-            this.#inventory.getProducts(),
-            this.#promotion.getPromotions(),
+            this.#convenienceStore.getInventory().getProducts(),
+            this.#convenienceStore.getPromotion().getPromotions(),
             buyProduct,
           );
 
@@ -116,8 +109,9 @@ class App {
           continue;
         }
 
-        const { remainBuyProductQuantity, totalPromotionQuantity, totalBonusQuantity } =
-          this.#promotion.getPromotionResult(buyProduct, this.#inventory.getProducts());
+        const { remainBuyProductQuantity, totalPromotionQuantity, totalBonusQuantity } = this.#convenienceStore
+          .getPromotion()
+          .getPromotionResult(buyProduct, this.#convenienceStore.getInventory().getProducts());
 
         this.#buyProducts.buyWithPromotionProduct(promotionProduct, buyProduct.name, totalPromotionQuantity);
         this.#buyProducts.addBonusProductQuantity(buyProduct.name, totalBonusQuantity);
@@ -129,7 +123,7 @@ class App {
 
         // 프로모션 재고 부족 -> 이거 정가로 구매할 거야?
         // 일반 재고가 없는 경우 구매할 수 없다.
-        if (remainBuyProductQuantity > generalProduct.quantity) {
+        if (remainBuyProductQuantity > generalProduct.getQuantity()) {
           throwError(`재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.`);
         }
 

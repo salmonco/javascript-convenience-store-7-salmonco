@@ -1,8 +1,21 @@
-class Inventory {
-  #products = []; // [{ name, price, quantity, promotion }]
+import InputParser from '../controller/InputParser.js';
+import InputView from '../view/InputView.js';
+import Product from './Product.js';
 
-  setProducts(products) {
-    this.#products = products;
+class Inventory {
+  #products = []; // [new Product({ name, price, quantity, promotion })]
+
+  async initInventory() {
+    const productsData = await InputView.readProducts();
+    const products = InputParser.parseProducts(productsData);
+
+    const productPromises = products.map(async ({ name, price, quantity, promotion }) => {
+      const product = new Product({ name, price, quantity, promotion });
+
+      this.#products.push(product);
+    });
+
+    await Promise.all(productPromises);
   }
 
   getProducts() {
@@ -10,10 +23,12 @@ class Inventory {
   }
 
   getProductByName(name) {
-    const prods = this.#products.filter((product) => product.name === name);
-
-    const promotionProduct = prods.find((prod) => prod.promotion !== 'null');
-    const generalProduct = prods.find((prod) => prod.promotion === 'null');
+    const promotionProduct = this.#products.find(
+      (product) => product.getName() === name && product.getPromotion() !== 'null',
+    );
+    const generalProduct = this.#products.find(
+      (product) => product.getName() === name && product.getPromotion() === 'null',
+    );
 
     return { promotionProduct, generalProduct };
   }
@@ -21,7 +36,7 @@ class Inventory {
   isLessThanPromotionQuantity(promotionProduct, promotion) {
     const unit = promotion.buy + promotion.get;
 
-    if (promotionProduct.quantity < unit) {
+    if (promotionProduct.getQuantity() < unit) {
       return false;
     }
 
