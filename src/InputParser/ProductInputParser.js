@@ -9,11 +9,13 @@ const ProductInputParser = {
 
     return products;
   },
+
   parseProductLine(line) {
     const [name, price, quantity, promotion] = splitWithComma(line);
 
     return { name, promotion, price: Number(price), quantity: Number(quantity) };
   },
+
   identifyPromotionProducts(products) {
     const onlyPromotionProducts = {};
 
@@ -23,6 +25,7 @@ const ProductInputParser = {
 
     return onlyPromotionProducts;
   },
+
   addGeneralProducts(products, onlyPromotionProducts) {
     Object.entries(onlyPromotionProducts).forEach(([name, isPromotionOnly]) => {
       if (!isPromotionOnly) return;
@@ -30,12 +33,14 @@ const ProductInputParser = {
       this.addGeneralProduct(products, name);
     });
   },
+
   addGeneralProduct(products, name) {
     const { price } = products.find((prod) => prod.name === name);
     const promotionIdx = products.findIndex((prod) => prod.name === name);
 
     this.insertGeneralProduct(products, name, price, promotionIdx);
   },
+
   insertGeneralProduct(products, name, price, promotionIdx) {
     products.splice(promotionIdx, 0, {
       name,
