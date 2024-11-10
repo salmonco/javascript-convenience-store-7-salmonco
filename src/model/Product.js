@@ -34,7 +34,7 @@ class Product {
     return this.#promotion;
   }
 
-  getQuantityMessage() {
+  #getQuantityMessage() {
     if (this.#quantity === 0) {
       return '재고 없음';
     }
@@ -42,7 +42,7 @@ class Product {
     return `${this.#quantity}개`;
   }
 
-  getPromotionMessage() {
+  #getPromotionMessage() {
     if (this.#promotion === 'null') {
       return '';
     }
@@ -51,8 +51,8 @@ class Product {
   }
 
   toString() {
-    const quantityMessage = this.getQuantityMessage();
-    const promotionMessage = this.getPromotionMessage();
+    const quantityMessage = this.#getQuantityMessage();
+    const promotionMessage = this.#getPromotionMessage();
 
     return `- ${this.#name} ${this.#price.toLocaleString()}원 ${quantityMessage} ${promotionMessage}`;
   }
