@@ -1,6 +1,4 @@
 import { DateTimes } from '@woowacourse/mission-utils';
-import throwError from '../util/throwError.js';
-import InputView from '../view/InputView.js';
 
 class Promotion {
   #promotions = []; // [{ name, buy, get, startDate, endDate }]
