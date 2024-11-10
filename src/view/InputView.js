@@ -37,7 +37,7 @@ const InputView = {
     }
   },
 
-  readItem() {
+  readBuyProduct() {
     return Console.readLineAsync(INPUT_MESSAGES.BUY_PRODUCT);
   },
 

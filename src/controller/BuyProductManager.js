@@ -7,7 +7,7 @@ class BuyProductManager {
 
   #bonusProducts = {}; // { 상픔명: 수량 }
 
-  initBuyProducts() {
+  init() {
     this.#promotionBuyProducts = {};
     this.#generalBuyProducts = {};
     this.#bonusProducts = {};

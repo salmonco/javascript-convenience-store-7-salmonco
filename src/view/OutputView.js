@@ -3,8 +3,9 @@ import ReceiptCalculator from '../controller/ReceiptCalculator.js';
 import { OUTPUT_MESSAGES } from '../constant/message.js';
 
 const OutputView = {
-  printWelcome() {
+  printWelcome(products) {
     Console.print(OUTPUT_MESSAGES.WELCOME);
+    OutputView.printProducts(products);
   },
 
   printProducts(products) {

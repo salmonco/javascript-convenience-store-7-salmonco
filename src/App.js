@@ -18,23 +18,19 @@ class App {
   #membership = new Membership();
 
   async run() {
-    // 상품 목록과 행사 목록을 파일 입출력을 통해 불러온다.
     await this.#convenienceStore.init();
 
-    // 환영 인사와 함께 상품명, 가격, 프로모션 이름, 재고를 안내한다. 만약 재고가 0개라면 재고 없음을 출력한다.
-    OutputView.printWelcome();
-    OutputView.printProducts(this.#convenienceStore.getInventory().getProducts());
+    await this.#process();
+  }
 
-    // 구매할 상품명과 수량을 입력받는다.
+  async #process() {
+    OutputView.printWelcome(this.#convenienceStore.getInventory().getProducts());
+
     await this.processBuyProducts();
-
-    // 멤버십 할인 적용 여부를 입력 받는다.
     await this.askForMembershipSale();
 
-    // 영수증 출력
     this.printReceipt();
 
-    // 추가 구매 여부를 입력 받는다.
     await this.askForAdditionalBuy();
   }
 
@@ -43,21 +39,32 @@ class App {
     this.#membership.setMembershipByAnswer(answer);
   }
 
+  async askForAdditionalBuy() {
+    const answer = await InputView.readAdditionalBuyChoice();
+
+    if (answer === 'Y') {
+      await this.#process();
+    }
+  }
+
   async processBuyProducts() {
     try {
-      this.#buyProductManager.initBuyProducts();
-
-      const buyString = await InputView.readItem();
-      const buyProducts = this.parseBuyProducts(buyString);
-
+      this.#buyProductManager.init();
+      const buyProducts = await this.getBuyProducts();
       /* eslint-disable no-restricted-syntax, no-await-in-loop */
       for (const buyProduct of buyProducts) {
         await this.processBuyProduct(buyProduct);
       }
     } catch (error) {
       Console.print(`[ERROR] ${ERROR_MESSAGES.INVALID_INPUT}\n${error.message}`);
-      await this.processBuyProducts(); // 재귀 호출로 다시 입력받기
+      await this.processBuyProducts();
     }
+  }
+
+  async getBuyProducts() {
+    const buyString = await InputView.readBuyProduct();
+
+    return this.parseBuyProducts(buyString);
   }
 
   parseBuyProducts(buyString) {
@@ -138,19 +145,6 @@ class App {
 
     if (answer === 'Y') {
       this.#buyProductManager.buyWithGeneralProduct(generalProduct, buyProduct.name, remainBuyProductQuantity);
-    }
-  }
-
-  async askForAdditionalBuy() {
-    const answer = await InputView.readAdditionalBuyChoice();
-
-    if (answer === 'Y') {
-      OutputView.printWelcome();
-      OutputView.printProducts(this.#convenienceStore.getInventory().getProducts());
-      await this.processBuyProducts();
-      await this.askForMembershipSale();
-      this.printReceipt();
-      await this.askForAdditionalBuy();
     }
   }
 
