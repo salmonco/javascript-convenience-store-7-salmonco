@@ -1,7 +1,7 @@
 import { DateTimes } from '@woowacourse/mission-utils';
 import InputView from '../view/InputView.js';
 import Promotion from '../model/Promotion.js';
-import PromotionInputParser from './PromotionInputParser.js';
+import PromotionInputParser from '../InputParser/PromotionInputParser.js';
 
 class PromotionManager {
   #promotions = []; // [new Promotion({ name, buy, get, startDate, endDate })]

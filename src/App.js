@@ -6,7 +6,7 @@ import throwError from './util/throwError.js';
 import ConvenienceStore from './model/ConvenienceStore.js';
 import BuyProductManager from './controller/BuyProductManager.js';
 import splitWithComma from './util/splitWithComma.js';
-import BuyProductInputParser from './controller/BuyProductInputParser.js';
+import BuyProductInputParser from './InputParser/BuyProductInputParser.js';
 
 class App {
   #convenienceStore = new ConvenienceStore();
