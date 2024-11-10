@@ -1,6 +1,7 @@
 import { Console, DateTimes } from '@woowacourse/mission-utils';
 import InputView from './view/InputView.js';
 import InputParser from './controller/InputParser.js';
+import OutputView from './view/OutputView.js';
 
 class App {
   products = []; // [{ name, price, quantity, promotion }]
@@ -26,8 +27,8 @@ class App {
     this.promotions = promotions;
 
     // 환영 인사와 함께 상품명, 가격, 프로모션 이름, 재고를 안내한다. 만약 재고가 0개라면 재고 없음을 출력한다.
-    Console.print('안녕하세요. W편의점입니다.\n현재 보유하고 있는 상품입니다.\n');
-    this.printProducts(products);
+    OutputView.printWelcome();
+    OutputView.printProducts(products);
 
     // 구매할 상품명과 수량을 입력받는다.
     const buyString = await Console.readLineAsync(
@@ -199,25 +200,6 @@ class App {
 
   throwError(message) {
     throw new Error(`[ERROR] ${message}`);
-  }
-
-  printProducts(products) {
-    products.forEach((product) => {
-      const { name, price, quantity, promotion } = product;
-
-      let quantityMessage = `${quantity}개`;
-
-      if (quantity === 0) {
-        quantityMessage = '재고 없음';
-      }
-
-      let promotionMessage = promotion;
-      if (promotion === 'null') {
-        promotionMessage = '';
-      }
-
-      Console.print(`- ${name} ${price.toLocaleString()}원 ${quantityMessage} ${promotionMessage}`);
-    });
   }
 
   getPromotionResult(buyProduct) {
