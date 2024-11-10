@@ -4,6 +4,7 @@ const PromotionInputParser = {
   parsePromotions(data) {
     return parseLineWithCallback(data, this.parsePromotionLine);
   },
+
   parsePromotionLine(line) {
     const [name, buy, get, startDate, endDate] = line.split(',');
 
