@@ -8,7 +8,9 @@ class App {
 
   promotions = []; // [{ name, buy, get, startDate, endDate }]
 
-  buyProducts = {}; // { 상픔명: 수량 }
+  promotionBuyProducts = {}; // { 상픔명: 수량 }
+
+  generalBuyProducts = {}; // { 상픔명: 수량 }
 
   bonusProducts = {}; // { 상픔명: 수량 }
 
@@ -43,7 +45,8 @@ class App {
 
     /* eslint-disable no-restricted-syntax, no-await-in-loop */
     for (const buyProduct of buyProducts) {
-      console.log('buyProducts: ', this.buyProducts);
+      console.log('promotionBuyProducts: ', this.promotionBuyProducts);
+      console.log('generalBuyProducts: ', this.generalBuyProducts);
       console.log('bonusProducts: ', this.bonusProducts);
       console.log('products: ', this.products);
 
@@ -51,17 +54,16 @@ class App {
       const promotionProd = prods.find((prod) => prod.promotion !== 'null');
       const generalProd = prods.find((prod) => prod.promotion === 'null');
 
-      // 프로모션 적용이 가능한 상품인지 확인한다.
+      // 프로모션 적용 불가
       if (promotionProd === undefined) {
-        // 프로모션 불가
         // 일반 재고가 없는 경우 구매할 수 없다.
         if (buyProduct.quantity > generalProd.quantity) {
           this.throwError(`재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.`);
         }
 
-        this.buyProducts = {
-          ...this.buyProducts,
-          [buyProduct.name]: this.buyProducts[buyProduct.name] + buyProduct.quantity || buyProduct.quantity,
+        this.generalBuyProducts = {
+          ...this.generalBuyProducts,
+          [buyProduct.name]: this.generalBuyProducts[buyProduct.name] + buyProduct.quantity || buyProduct.quantity,
         };
 
         // 일반 재고로 구매
@@ -69,16 +71,17 @@ class App {
         continue;
       }
 
+      // 프로모션 적용 가능
       const promotion = this.promotions.find((promo) => promo.name === promotionProd.promotion);
 
       if (buyProduct.quantity < promotion.buy) {
         // 프로모션 buy 수량보다 적게 가져왔을 경우 더 가져올 건지 묻지는 않는다.
-        this.buyProducts = {
-          ...this.buyProducts,
-          [buyProduct.name]: this.buyProducts[buyProduct.name] + buyProduct.quantity || buyProduct.quantity,
+        // 일반 재고로 구매
+        this.generalBuyProducts = {
+          ...this.generalBuyProducts,
+          [buyProduct.name]: this.generalBuyProducts[buyProduct.name] + buyProduct.quantity || buyProduct.quantity,
         };
 
-        // 일반 재고로 구매
         generalProd.quantity -= buyProduct.quantity;
       } else if (this.isLessBuyThanPromotion(buyProduct)) {
         // 1개 더 가져올랬는데 재고 부족하면? 정가로 사야 함 -> processPromotion
@@ -90,9 +93,10 @@ class App {
           const totalBuyProductQuantity = promotion.buy + promotion.get;
           const moreGetQuantity = totalBuyProductQuantity - buyProduct.quantity;
 
-          this.buyProducts = {
-            ...this.buyProducts,
-            [buyProduct.name]: this.buyProducts[buyProduct.name] + totalBuyProductQuantity || totalBuyProductQuantity,
+          this.promotionBuyProducts = {
+            ...this.promotionBuyProducts,
+            [buyProduct.name]:
+              this.promotionBuyProducts[buyProduct.name] + totalBuyProductQuantity || totalBuyProductQuantity,
           };
 
           this.bonusProducts = {
@@ -107,7 +111,8 @@ class App {
       }
     }
 
-    console.log('buyProducts: ', this.buyProducts);
+    console.log('promotionBuyProducts: ', this.promotionBuyProducts);
+    console.log('generalBuyProducts: ', this.generalBuyProducts);
     console.log('bonusProducts: ', this.bonusProducts);
     console.log('products: ', this.products);
 
@@ -120,12 +125,28 @@ class App {
       this.isMembership = false;
     }
 
+    const totalBuyProducts = {};
+    let totalBuyProductQuantity = 0;
+    let generalBuyProductsTotalPrice = 0;
+    Object.entries(this.generalBuyProducts).forEach(([name, quantity]) => {
+      const { price } = this.products.find((product) => product.name === name);
+
+      generalBuyProductsTotalPrice += price * quantity;
+      totalBuyProducts[name] = totalBuyProducts[name] + quantity || quantity;
+      totalBuyProductQuantity += quantity;
+    });
+
+    Object.entries(this.promotionBuyProducts).forEach(([name, quantity]) => {
+      totalBuyProducts[name] = totalBuyProducts[name] + quantity || quantity;
+      totalBuyProductQuantity += quantity;
+    });
+
     let totalBuyPrice = 0;
     let promotionSalePrice = 0;
     // 구매 상품 내역, 증정 상품 내역, 금액 정보를 영수증 형식으로 출력한다.
     Console.print('\n==============W 편의점================\n');
     Console.print('상품명		수량	금액\n');
-    Object.entries(this.buyProducts).forEach(([name, quantity]) => {
+    Object.entries(totalBuyProducts).forEach(([name, quantity]) => {
       const { price } = this.products.find((product) => product.name === name);
       const totalPrice = price * quantity;
 
@@ -133,6 +154,7 @@ class App {
 
       totalBuyPrice += totalPrice;
     });
+
     Console.print('=============증	정===============\n');
     Object.entries(this.bonusProducts).forEach(([name, quantity]) => {
       const { price } = this.products.find((product) => product.name === name);
@@ -141,12 +163,19 @@ class App {
 
       promotionSalePrice += quantity * price;
     });
-    Console.print('====================================\n');
 
-    const totalBuyProductQuantity = Object.entries(this.buyProducts).reduce((acc, [_, quantity]) => acc + quantity, 0);
+    Console.print('====================================\n');
     Console.print(`총구매액		${totalBuyProductQuantity}	${totalBuyPrice.toLocaleString()}\n`);
     Console.print(`행사할인			-${promotionSalePrice.toLocaleString()}`);
-    const totalPrice = totalBuyPrice - promotionSalePrice;
+
+    let membershipSalePrice = generalBuyProductsTotalPrice * 0.3;
+    if (membershipSalePrice > 8000) {
+      membershipSalePrice = 8000;
+    }
+
+    Console.print(`멤버십할인			-${membershipSalePrice.toLocaleString()}\n`);
+
+    const totalPrice = totalBuyPrice - promotionSalePrice - membershipSalePrice;
     Console.print(`내실돈			 ${totalPrice.toLocaleString()}\n`);
   }
 
@@ -276,22 +305,22 @@ class App {
       this.getPromotionResult(buyProduct);
     console.log(remainBuyProductQuantity, totalPromotionQuantity, totalBonusQuantity);
 
+    this.promotionBuyProducts = {
+      ...this.promotionBuyProducts,
+      [buyProduct.name]: this.promotionBuyProducts[buyProduct.name] + totalPromotionQuantity || totalPromotionQuantity,
+    };
+
+    this.bonusProducts = {
+      ...this.bonusProducts,
+      [buyProduct.name]: this.bonusProducts[buyProduct.name] + totalBonusQuantity || totalBonusQuantity,
+    };
+
+    promotionProd.quantity -= totalPromotionQuantity;
+
     if (remainBuyProductQuantity === 0) {
       // 프로모션 재고 충분
-      this.buyProducts = {
-        ...this.buyProducts,
-        [buyProduct.name]: this.buyProducts[buyProduct.name] + buyProduct.quantity || buyProduct.quantity,
-      };
-
-      this.bonusProducts = {
-        ...this.bonusProducts,
-        [buyProduct.name]: this.bonusProducts[buyProduct.name] + totalBonusQuantity || totalBonusQuantity,
-      };
-
-      promotionProd.quantity -= buyProduct.quantity;
     } else {
       // 프로모션 재고 부족 -> 이거 정가로 구매할 거야?
-
       // 일반 재고가 없는 경우 구매할 수 없다.
       if (remainBuyProductQuantity > generalProd.quantity) {
         this.throwError(`재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.`);
@@ -304,23 +333,15 @@ class App {
 
       if (answer === 'Y') {
         // Y: 일부 수량에 대해 정가로 결제한다.
-        this.buyProducts = {
-          ...this.buyProducts,
+        this.generalBuyProducts = {
+          ...this.generalBuyProducts,
           [buyProduct.name]:
-            this.buyProducts[buyProduct.name] + totalPromotionQuantity + remainBuyProductQuantity ||
-            totalPromotionQuantity + remainBuyProductQuantity,
+            this.generalBuyProducts[buyProduct.name] + remainBuyProductQuantity || remainBuyProductQuantity,
         };
 
-        promotionProd.quantity -= totalPromotionQuantity;
         generalProd.quantity -= remainBuyProductQuantity;
       } else {
         // N: 정가로 결제해야하는 수량만큼 제외한 후 결제를 진행한다.
-        this.buyProducts = {
-          ...this.buyProducts,
-          [buyProduct.name]: this.buyProducts[buyProduct.name] + totalPromotionQuantity || totalPromotionQuantity,
-        };
-
-        promotionProd.quantity -= totalPromotionQuantity;
       }
     }
   }
