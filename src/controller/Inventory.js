@@ -1,13 +1,13 @@
-import InputParser from './InputParser.js';
 import InputView from '../view/InputView.js';
 import Product from '../model/Product.js';
+import ProductInputParser from './ProductInputParser.js';
 
 class Inventory {
   #products = []; // [new Product({ name, price, quantity, promotion })]
 
   async initInventory() {
     const productsData = await InputView.readProducts();
-    const products = InputParser.parseProducts(productsData);
+    const products = ProductInputParser.parseProducts(productsData);
 
     const productPromises = products.map(async ({ name, price, quantity, promotion }) => {
       const product = new Product({ name, price, quantity, promotion });

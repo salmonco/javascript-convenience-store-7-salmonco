@@ -1,11 +1,12 @@
 import { Console } from '@woowacourse/mission-utils';
 import InputView from './view/InputView.js';
-import InputParser from './controller/InputParser.js';
 import OutputView from './view/OutputView.js';
 import Membership from './model/Membership.js';
 import throwError from './util/throwError.js';
 import ConvenienceStore from './model/ConvenienceStore.js';
 import BuyProductManager from './controller/BuyProductManager.js';
+import splitWithComma from './util/splitWithComma.js';
+import BuyProductInputParser from './controller/BuyProductInputParser.js';
 
 class App {
   #convenienceStore = new ConvenienceStore();
@@ -44,10 +45,10 @@ class App {
       const buyString = await InputView.readItem();
 
       // 개별 상품을 쉼표(,)로 파싱한다.
-      const buyList = InputParser.splitWithComma(buyString);
+      const buyList = splitWithComma(buyString);
 
       // 상품명과 수량을 하이픈(-)으로 파싱한다.
-      const buyProducts = InputParser.splitWithHyphen(buyList);
+      const buyProducts = BuyProductInputParser.splitWithHyphen(buyList);
 
       /* eslint-disable no-restricted-syntax, no-await-in-loop */
       for (const buyProduct of buyProducts) {

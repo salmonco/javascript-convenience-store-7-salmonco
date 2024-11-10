@@ -1,14 +1,14 @@
 import { DateTimes } from '@woowacourse/mission-utils';
 import InputView from '../view/InputView.js';
-import InputParser from './InputParser.js';
 import Promotion from '../model/Promotion.js';
+import PromotionInputParser from './PromotionInputParser.js';
 
 class PromotionManager {
   #promotions = []; // [new Promotion({ name, buy, get, startDate, endDate })]
 
   async initPromotions() {
     const promotionsData = await InputView.readPromotions();
-    const promotions = InputParser.parsePromotions(promotionsData);
+    const promotions = PromotionInputParser.parsePromotions(promotionsData);
 
     const promotionPromises = promotions.map(async ({ name, buy, get, startDate, endDate }) => {
       const promotion = new Promotion({ name, buy, get, startDate, endDate });

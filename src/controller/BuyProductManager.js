@@ -62,6 +62,14 @@ class BuyProductManager {
   shouldPickMoreItem(buyProduct, promotion) {
     return buyProduct.quantity === promotion.getBuy();
   }
+
+  static calculateMoreGetQuantity(products, promotions, buyProduct) {
+    const prod = products.find((product) => product.getName() === buyProduct.name);
+    const promotion = promotions.find((promo) => promo.getName() === prod.getPromotion());
+    const moreGetQuantity = promotion.getBuy() + promotion.getGet() - buyProduct.quantity;
+
+    return moreGetQuantity;
+  }
 }
 
 export default BuyProductManager;
