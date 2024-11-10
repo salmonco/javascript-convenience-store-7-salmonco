@@ -129,34 +129,57 @@ class App {
     }
   }
 
-  async processPromotionProduct(promotionProduct, generalProduct, buyProduct, promotion) {
-    const answer = await InputView.readGetMorePromotionChoice(
+  async processPromotionProduct(promotionProduct, buyProduct, promotion) {
+    const answer = await this.getMorePromotionChoice(buyProduct);
+
+    if (answer === 'Y') {
+      this.handlePromotionProduct(promotionProduct, buyProduct, promotion);
+    }
+  }
+
+  getMorePromotionChoice(buyProduct) {
+    return InputView.readGetMorePromotionChoice(
       this.#convenienceStore.getInventory().getProducts(),
       this.#convenienceStore.getPromotionManager().getPromotions(),
       buyProduct,
     );
+  }
 
-    if (answer === 'Y') {
-      const totalBuyProductQuantity = promotion.getBuy() + promotion.getGet();
-      const moreGetQuantity = totalBuyProductQuantity - buyProduct.quantity;
+  handlePromotionProduct(promotionProduct, buyProduct, promotion) {
+    const totalBuyProductQuantity = this.calculateTotalBuyProductQuantity(promotion, buyProduct);
+    const moreGetQuantity = this.calculateMoreGetQuantity(totalBuyProductQuantity, buyProduct);
 
-      this.#buyProductManager.buyWithPromotionProduct(promotionProduct, buyProduct.name, totalBuyProductQuantity);
-      this.#buyProductManager.addBonusProductQuantity(buyProduct.name, moreGetQuantity);
-    }
+    this.#buyProductManager.buyWithPromotionProduct(promotionProduct, buyProduct.name, totalBuyProductQuantity);
+    this.#buyProductManager.addBonusProductQuantity(buyProduct.name, moreGetQuantity);
   }
 
   async processPromotionResult(promotionProduct, generalProduct, buyProduct) {
-    const { remainBuyProductQuantity, totalPromotionQuantity, totalBonusQuantity } = this.#convenienceStore
+    const { remainBuyProductQuantity, totalPromotionQuantity, totalBonusQuantity } =
+      this.getPromotionResult(buyProduct);
+
+    this.processPromotionPurchase(promotionProduct, buyProduct, totalPromotionQuantity, totalBonusQuantity);
+
+    if (this.isPromotionStockSufficient(remainBuyProductQuantity)) return;
+
+    await this.handleInsufficientPromotionStock(generalProduct, buyProduct, remainBuyProductQuantity);
+  }
+
+  getPromotionResult(buyProduct) {
+    return this.#convenienceStore
       .getPromotionManager()
       .getPromotionResult(buyProduct, this.#convenienceStore.getInventory().getProducts());
+  }
 
+  processPromotionPurchase(promotionProduct, buyProduct, totalPromotionQuantity, totalBonusQuantity) {
     this.#buyProductManager.buyWithPromotionProduct(promotionProduct, buyProduct.name, totalPromotionQuantity);
     this.#buyProductManager.addBonusProductQuantity(buyProduct.name, totalBonusQuantity);
+  }
 
-    if (remainBuyProductQuantity === 0) {
-      return;
-    }
+  isPromotionStockSufficient(remainBuyProductQuantity) {
+    return remainBuyProductQuantity === 0;
+  }
 
+  async handleInsufficientPromotionStock(generalProduct, buyProduct, remainBuyProductQuantity) {
     if (remainBuyProductQuantity > generalProduct.getQuantity()) {
       throwError(ERROR_MESSAGES.EXCEED_STOCK);
     }
