@@ -1,6 +1,6 @@
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
+// import fs from 'fs/promises';
+// import path from 'path';
+// import { fileURLToPath } from 'url';
 import { Console } from '@woowacourse/mission-utils';
 import { PRODUCT_DATA, PROMOTION_DATA } from '../constant/fileData.js';
 import BuyProductManager from '../controller/BuyProductManager.js';
