@@ -83,7 +83,7 @@ class App {
     const promotion = this.#convenienceStore.getPromotionManager().getPromotionByName(promotionProduct.getPromotion());
     if (await this.handlePromotionDate(promotion, generalProduct, buyProduct)) return;
     if (await this.handlePromotionQuantity(buyProduct, promotion, generalProduct)) return;
-    if (await this.handleMoreItems(buyProduct, promotionProduct, promotion)) return;
+    if (await this.handleMoreItems(promotionProduct, buyProduct, promotion)) return;
 
     await this.processPromotionResult(promotionProduct, generalProduct, buyProduct);
   }
@@ -115,9 +115,9 @@ class App {
     return false;
   }
 
-  async handleMoreItems(buyProduct, promotionProduct, promotion) {
+  async handleMoreItems(promotionProduct, buyProduct, promotion) {
     if (BuyProductManager.shouldPickMoreItem(buyProduct, promotion)) {
-      await this.processPromotionProduct({ promotionProduct, buyProduct, promotion });
+      await this.processPromotionProduct(promotionProduct, buyProduct);
 
       return true;
     }
@@ -130,11 +130,11 @@ class App {
     }
   }
 
-  async processPromotionProduct({ promotionProduct, buyProduct, promotion }) {
+  async processPromotionProduct(promotionProduct, buyProduct) {
     const answer = await this.getMorePromotionChoice(buyProduct);
 
     if (answer === 'Y') {
-      this.handlePromotionProduct({ promotionProduct, buyProduct, promotion });
+      this.handlePromotionProduct(promotionProduct, buyProduct);
     }
   }
 
@@ -146,15 +146,18 @@ class App {
     );
   }
 
-  handlePromotionProduct({ promotionProduct, buyProduct, promotion }) {
-    const totalBuyProductQuantity = ReceiptCalculator.calculateTotalBuyProductQuantity(promotion, buyProduct);
+  handlePromotionProduct(promotionProduct, buyProduct) {
     const moreGetQuantity = BuyProductManager.calculateMoreGetQuantity(
       this.#convenienceStore.getInventory().getProducts(),
       this.#convenienceStore.getPromotionManager().getPromotions(),
       buyProduct,
     );
 
-    this.#buyProductManager.buyWithPromotionProduct(promotionProduct, buyProduct.name, totalBuyProductQuantity);
+    this.#buyProductManager.buyWithPromotionProduct(
+      promotionProduct,
+      buyProduct.name,
+      buyProduct.quantity + moreGetQuantity,
+    );
     this.#buyProductManager.addBonusProductQuantity(buyProduct.name, moreGetQuantity);
   }
 
