@@ -1,22 +1,13 @@
-// import fs from 'fs/promises';
-// import path from 'path';
-// import { fileURLToPath } from 'url';
+import fs from 'fs/promises';
 import { Console } from '@woowacourse/mission-utils';
-import { PRODUCT_DATA, PROMOTION_DATA } from '../constant/fileData.js';
 import BuyProductManager from '../controller/BuyProductManager.js';
 import { INPUT_MESSAGES } from '../constant/message.js';
 
 const InputView = {
   async readProducts() {
-    // TODO: import.meta.url 쓰면 Jest에서 에러 발생함. 추후 수정 필요
-    // const filename = fileURLToPath(import.meta.url);
-    // const dirname = path.dirname(filename);
-    // const filePath = path.join(dirname, '..', 'public', 'products.md');
-
     try {
-      //   const data = await fs.readFile(filePath, 'utf8');
-      //   return data;
-      return PRODUCT_DATA;
+      const data = await fs.readFile('public/products.md', 'utf8');
+      return data;
     } catch (error) {
       this.throwError(`products.md 파일을 불러오는 중 오류가 발생했습니다. ${error.message}`);
       return null;
@@ -24,14 +15,9 @@ const InputView = {
   },
 
   async readPromotions() {
-    // const filename = fileURLToPath(import.meta.url);
-    // const dirname = path.dirname(filename);
-    // const filePath = path.join(dirname, '..', 'public', 'promotions.md');
-
     try {
-      //   const data = await fs.readFile(filePath, 'utf8');
-      //   return data;
-      return PROMOTION_DATA;
+      const data = await fs.readFile('public/promotions.md', 'utf8');
+      return data;
     } catch (error) {
       this.throwError(`promotions.md 파일을 불러오는 중 오류가 발생했습니다. ${error.message}`);
       return null;
