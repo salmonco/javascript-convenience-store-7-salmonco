@@ -8,6 +8,7 @@ import { INPUT_MESSAGES } from '../constant/message.js';
 
 const InputView = {
   async readProducts() {
+    // TODO: import.meta.url 쓰면 Jest에서 에러 발생함. 추후 수정 필요
     // const filename = fileURLToPath(import.meta.url);
     // const dirname = path.dirname(filename);
     // const filePath = path.join(dirname, '..', 'public', 'products.md');
