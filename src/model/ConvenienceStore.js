@@ -8,7 +8,7 @@ class ConvenienceStore {
 
   async init() {
     await this.#inventory.init();
-    await this.#promotionManager.initPromotions();
+    await this.#promotionManager.init();
   }
 
   getInventory() {

@@ -6,7 +6,7 @@ import PromotionInputParser from '../InputParser/PromotionInputParser.js';
 class PromotionManager {
   #promotions = []; // [new Promotion({ name, buy, get, startDate, endDate })]
 
-  async initPromotions() {
+  async init() {
     const promotionsData = await InputView.readPromotions();
     const promotions = PromotionInputParser.parsePromotions(promotionsData);
 
