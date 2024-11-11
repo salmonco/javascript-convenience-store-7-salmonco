@@ -9,6 +9,7 @@ import splitWithComma from './util/splitWithComma.js';
 import BuyProductInputParser from './InputParser/BuyProductInputParser.js';
 import PromotionManager from './controller/PromotionManager.js';
 import { ERROR_MESSAGES } from './constant/message.js';
+import ReceiptCalculator from './controller/ReceiptCalculator.js';
 
 class App {
   #convenienceStore = new ConvenienceStore();
@@ -82,7 +83,7 @@ class App {
     const promotion = this.#convenienceStore.getPromotionManager().getPromotionByName(promotionProduct.getPromotion());
     if (await this.handlePromotionDate(promotion, generalProduct, buyProduct)) return;
     if (await this.handlePromotionQuantity(buyProduct, promotion, generalProduct)) return;
-    if (await this.handleMoreItems(buyProduct, promotionProduct, generalProduct, promotion)) return;
+    if (await this.handleMoreItems(buyProduct, promotionProduct, promotion)) return;
 
     await this.processPromotionResult(promotionProduct, generalProduct, buyProduct);
   }
@@ -114,9 +115,9 @@ class App {
     return false;
   }
 
-  async handleMoreItems(buyProduct, promotionProduct, generalProduct, promotion) {
+  async handleMoreItems(buyProduct, promotionProduct, promotion) {
     if (BuyProductManager.shouldPickMoreItem(buyProduct, promotion)) {
-      await this.processPromotionProduct(promotionProduct, generalProduct, buyProduct, promotion);
+      await this.processPromotionProduct({ promotionProduct, buyProduct, promotion });
 
       return true;
     }
@@ -129,11 +130,11 @@ class App {
     }
   }
 
-  async processPromotionProduct(promotionProduct, buyProduct, promotion) {
+  async processPromotionProduct({ promotionProduct, buyProduct, promotion }) {
     const answer = await this.getMorePromotionChoice(buyProduct);
 
     if (answer === 'Y') {
-      this.handlePromotionProduct(promotionProduct, buyProduct, promotion);
+      this.handlePromotionProduct({ promotionProduct, buyProduct, promotion });
     }
   }
 
@@ -145,9 +146,13 @@ class App {
     );
   }
 
-  handlePromotionProduct(promotionProduct, buyProduct, promotion) {
-    const totalBuyProductQuantity = this.calculateTotalBuyProductQuantity(promotion, buyProduct);
-    const moreGetQuantity = this.calculateMoreGetQuantity(totalBuyProductQuantity, buyProduct);
+  handlePromotionProduct({ promotionProduct, buyProduct, promotion }) {
+    const totalBuyProductQuantity = ReceiptCalculator.calculateTotalBuyProductQuantity(promotion, buyProduct);
+    const moreGetQuantity = BuyProductManager.calculateMoreGetQuantity(
+      this.#convenienceStore.getInventory().getProducts(),
+      this.#convenienceStore.getPromotionManager().getPromotions(),
+      buyProduct,
+    );
 
     this.#buyProductManager.buyWithPromotionProduct(promotionProduct, buyProduct.name, totalBuyProductQuantity);
     this.#buyProductManager.addBonusProductQuantity(buyProduct.name, moreGetQuantity);
