@@ -7,7 +7,7 @@ class ConvenienceStore {
   #promotionManager = new PromotionManager();
 
   async init() {
-    await this.#inventory.initInventory();
+    await this.#inventory.init();
     await this.#promotionManager.initPromotions();
   }
 

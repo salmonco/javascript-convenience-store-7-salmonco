@@ -5,7 +5,7 @@ import ProductInputParser from '../InputParser/ProductInputParser.js';
 class Inventory {
   #products = []; // [new Product({ name, price, quantity, promotion })]
 
-  async initInventory() {
+  async init() {
     const productsData = await InputView.readProducts();
     const products = ProductInputParser.parseProducts(productsData);
 
