@@ -1,25 +1,12 @@
 const ReceiptCalculator = {
   calculate({ generalBuyProducts, promotionBuyProducts, bonusProducts, products, isMembership }) {
-    const totalBuyProducts = ReceiptCalculator.calculateTotalBuyProducts(generalBuyProducts, promotionBuyProducts);
-    const generalBuyProductsTotalPrice = ReceiptCalculator.calculateGeneralBuyProductsTotalPrice(
-      generalBuyProducts,
-      products,
-    );
-    const totalBuyProductQuantity = ReceiptCalculator.calculateTotalBuyProductQuantity(
-      generalBuyProducts,
-      promotionBuyProducts,
-    );
-    const totalBuyPrice = ReceiptCalculator.calculateTotalBuyPrice(totalBuyProducts, products);
-    const promotionSalePrice = ReceiptCalculator.calculatePromotionSalePrice(bonusProducts, products);
-    const membershipSalePrice = ReceiptCalculator.calculateMembershipSalePrice(
-      isMembership,
-      generalBuyProductsTotalPrice,
-    );
-    const totalPayPrice = ReceiptCalculator.calculateTotalPayPrice(
-      totalBuyPrice,
-      promotionSalePrice,
-      membershipSalePrice,
-    );
+    const totalBuyProducts = this.calculateTotalBuyProducts(generalBuyProducts, promotionBuyProducts);
+    const generalBuyProductsTotalPrice = this.calculateGeneralBuyProductsTotalPrice(generalBuyProducts, products);
+    const totalBuyProductQuantity = this.calculateTotalBuyProductQuantity(generalBuyProducts, promotionBuyProducts);
+    const totalBuyPrice = this.calculateTotalBuyPrice(totalBuyProducts, products);
+    const promotionSalePrice = this.calculatePromotionSalePrice(bonusProducts, products);
+    const membershipSalePrice = this.calculateMembershipSalePrice(isMembership, generalBuyProductsTotalPrice);
+    const totalPayPrice = this.calculateTotalPayPrice(totalBuyPrice, promotionSalePrice, membershipSalePrice);
 
     return {
       totalBuyProducts,
