@@ -9,7 +9,6 @@ import splitWithComma from './util/splitWithComma.js';
 import BuyProductInputParser from './InputParser/BuyProductInputParser.js';
 import PromotionManager from './controller/PromotionManager.js';
 import { ERROR_MESSAGES } from './constant/message.js';
-import ReceiptCalculator from './controller/ReceiptCalculator.js';
 
 class App {
   #convenienceStore = new ConvenienceStore();
